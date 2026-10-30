@@ -56,13 +56,12 @@ const seedDatabase = async () => {
     let superAdmin = await User.findOne({ email: superAdminEmail });
     if (!superAdmin) {
       superAdmin = await User.create({
-        firstName: 'System',
-        lastName: 'Administrator',
+        name: 'System Administrator',
         email: superAdminEmail,
-        passwordHash: 'Admin@EngiLab2025!',
+        password: 'Admin@EngiLab2025!',
         role: 'SUPER_ADMIN',
         department: null,
-        isActive: true,
+        status: 'ACTIVE',
         isEmailVerified: true
       });
       console.log(`[Seed] Created Super Admin: ${superAdminEmail}`);
@@ -70,48 +69,83 @@ const seedDatabase = async () => {
       console.log(`[Seed] Super Admin already exists: ${superAdminEmail}`);
     }
 
-    // 3. Seed Instructors for ECE and EPCE
-    const instructorsData = [
+    // 3. Seed Department Admins, Instructors, and Students
+    const sampleUsers = [
       {
-        firstName: 'Dawit',
-        lastName: 'Kebede',
-        email: 'dawit.kebede@astu.edu.et',
-        passwordHash: 'Instructor@2025!',
-        role: 'INSTRUCTOR',
+        name: 'Dr. Solomon Belay',
+        email: 'solomon.belay@astu.edu.et',
+        password: 'Admin@EngiLab2025!',
+        role: 'DEPARTMENT_ADMIN',
         department: departmentMap['ECE'],
-        isActive: true
+        status: 'ACTIVE'
       },
       {
-        firstName: 'Alemayehu',
-        lastName: 'Tadesse',
+        name: 'Dr. Meron Abebe',
+        email: 'meron.abebe@astu.edu.et',
+        password: 'Admin@EngiLab2025!',
+        role: 'DEPARTMENT_ADMIN',
+        department: departmentMap['EPCE'],
+        status: 'ACTIVE'
+      },
+      {
+        name: 'Dawit Kebede',
+        email: 'dawit.kebede@astu.edu.et',
+        password: 'Instructor@2025!',
+        role: 'INSTRUCTOR',
+        department: departmentMap['ECE'],
+        status: 'ACTIVE'
+      },
+      {
+        name: 'Alemayehu Tadesse',
         email: 'alemayehu.tadesse@astu.edu.et',
-        passwordHash: 'Instructor@2025!',
+        password: 'Instructor@2025!',
         role: 'INSTRUCTOR',
         department: departmentMap['EPCE'],
-        isActive: true
+        status: 'ACTIVE'
+      },
+      {
+        name: 'Kidus Yohannes',
+        email: 'kidus.yohannes@astu.edu.et',
+        password: 'Student@2025!',
+        role: 'STUDENT',
+        studentId: 'ETS0450/14',
+        department: departmentMap['ECE'],
+        status: 'ACTIVE'
+      },
+      {
+        name: 'Bethlehem Haile',
+        email: 'bethlehem.haile@astu.edu.et',
+        password: 'Student@2025!',
+        role: 'STUDENT',
+        studentId: 'ETS0482/14',
+        department: departmentMap['EPCE'],
+        status: 'ACTIVE'
       }
     ];
 
     const instructorMap = {};
-    for (const inst of instructorsData) {
-      let user = await User.findOne({ email: inst.email });
+    for (const u of sampleUsers) {
+      let user = await User.findOne({ email: u.email });
       if (!user) {
-        user = await User.create(inst);
-        console.log(`[Seed] Created Instructor: ${user.email}`);
+        user = await User.create(u);
+        console.log(`[Seed] Created ${user.role}: ${user.email}`);
       }
-      instructorMap[inst.email] = user._id;
+      if (u.role === 'INSTRUCTOR') {
+        instructorMap[u.email] = user._id;
+      }
     }
 
     // 4. Seed Academic Year & Semester
-    let currentYear = await AcademicYear.findOne({ year: '2024/2025' });
+    let currentYear = await AcademicYear.findOne({ code: 'AY-2024-2025' });
     if (!currentYear) {
       currentYear = await AcademicYear.create({
-        year: '2024/2025',
+        name: '2024/2025 Academic Year',
+        code: 'AY-2024-2025',
         startDate: new Date('2024-09-01'),
         endDate: new Date('2025-06-30'),
         isCurrent: true
       });
-      console.log(`[Seed] Created Academic Year: ${currentYear.year}`);
+      console.log(`[Seed] Created Academic Year: ${currentYear.name}`);
     }
 
     let currentSemester = await Semester.findOne({
@@ -122,7 +156,6 @@ const seedDatabase = async () => {
       currentSemester = await Semester.create({
         name: 'Semester I',
         academicYear: currentYear._id,
-        term: 'SEMESTER_1',
         startDate: new Date('2024-09-15'),
         endDate: new Date('2025-02-15'),
         isCurrent: true
@@ -139,10 +172,10 @@ const seedDatabase = async () => {
           'Practical laboratory investigations of FIR/IIR filter design, Fast Fourier Transform (FFT), audio signal analysis, and real-time DSP implementations.',
         department: departmentMap['ECE'],
         semester: currentSemester._id,
+        academicYear: currentYear._id,
         credits: 3,
-        coordinator: instructorMap['dawit.kebede@astu.edu.et'],
         instructors: [instructorMap['dawit.kebede@astu.edu.et']],
-        isActive: true
+        status: 'ACTIVE'
       },
       {
         code: 'EPCE3201',
@@ -151,10 +184,10 @@ const seedDatabase = async () => {
           'Hands-on experimental study of rectifiers, DC-DC converters, inverters, motor speed controllers, and power semiconductor switching dynamics.',
         department: departmentMap['EPCE'],
         semester: currentSemester._id,
+        academicYear: currentYear._id,
         credits: 3,
-        coordinator: instructorMap['alemayehu.tadesse@astu.edu.et'],
         instructors: [instructorMap['alemayehu.tadesse@astu.edu.et']],
-        isActive: true
+        status: 'ACTIVE'
       }
     ];
 
@@ -172,65 +205,39 @@ const seedDatabase = async () => {
     const exercisesData = [
       {
         title: 'DSP Lab 1: Discrete-Time Signals and Systems in MATLAB/Python',
-        exerciseNumber: 'Lab 01',
-        weekNumber: 2,
         course: courseMap['ECE3101'],
+        department: departmentMap['ECE'],
+        instructor: instructorMap['dawit.kebede@astu.edu.et'],
         description:
           'Generation of discrete-time unit step, impulse, and sinusoidal sequences. Implementation of linear convolution and difference equations.',
+        instructions: 'Synthesize elementary signals with varying sampling rates. Perform manual and programmatic discrete convolution.',
         objectives: [
           'Generate standard discrete-time signals mathematically and computationally',
           'Implement linear convolution and verify using discrete-time Fourier transform',
           'Evaluate stability and causality of discrete-time systems'
         ],
-        equipmentRequired: ['MATLAB / Python (NumPy/SciPy)', 'Personal Workstation'],
-        safetyGuidelines: 'Follow laboratory computing guidelines. Backup all source code.',
-        procedureSteps: [
-          'Synthesize elementary signals with varying sampling rates',
-          'Perform manual and programmatic discrete convolution',
-          'Plot frequency responses and verify poles and zeros'
-        ],
-        manualUrl: 'https://example.com/manuals/ece3101-lab1.pdf',
         submissionType: 'INDIVIDUAL',
         maxScore: 100,
         deadline: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000), // 14 days from now
-        lateSubmissionAllowed: true,
-        latePenaltyPercent: 5,
-        isPublished: true,
-        createdBy: instructorMap['dawit.kebede@astu.edu.et']
+        status: 'PUBLISHED'
       },
       {
         title: 'Power Lab 1: Single-Phase Controlled Bridge Rectifier Dynamics',
-        exerciseNumber: 'Lab 01',
-        weekNumber: 3,
         course: courseMap['EPCE3201'],
+        department: departmentMap['EPCE'],
+        instructor: instructorMap['alemayehu.tadesse@astu.edu.et'],
         description:
           'Investigation of firing angle modulation on output DC voltage, ripple factor, and total harmonic distortion (THD) under resistive and inductive loads.',
+        instructions: 'Verify circuit schematic and ground connections with instructor. Record DC voltage at firing angles alpha = 30, 60, 90, 120.',
         objectives: [
           'Construct a single-phase fully-controlled thyristor bridge circuit',
           'Analyze gate triggering angles from 0 to 180 degrees',
           'Measure input power factor, voltage ripple, and load current waveforms'
         ],
-        equipmentRequired: [
-          'Power Electronics Modular Bench',
-          'Digital Storage Oscilloscope (DSO)',
-          'SCR Thyristor Bridge Module',
-          'RL Load Bank'
-        ],
-        safetyGuidelines:
-          'High voltage circuits present. Ensure primary breaker is off prior to wiring. Use insulated probes at all times.',
-        procedureSteps: [
-          'Verify circuit schematic and ground connections with instructor',
-          'Energize supply and record DC voltage at firing angles alpha = 30, 60, 90, 120',
-          'Capture oscilloscope waveforms for load voltage and thyristor anode-cathode voltage'
-        ],
-        manualUrl: 'https://example.com/manuals/epce3201-lab1.pdf',
         submissionType: 'GROUP',
         maxScore: 100,
         deadline: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000),
-        lateSubmissionAllowed: true,
-        latePenaltyPercent: 5,
-        isPublished: true,
-        createdBy: instructorMap['alemayehu.tadesse@astu.edu.et']
+        status: 'PUBLISHED'
       }
     ];
 
