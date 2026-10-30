@@ -57,6 +57,21 @@ const startServer = async () => {
     // Establish database connection prior to listening
     await connectDB();
 
+    // Auto-seed initial academic records if empty in development mode
+    if (NODE_ENV !== 'production') {
+      try {
+        const Department = require('./models/department.model');
+        const deptCount = await Department.countDocuments();
+        if (deptCount === 0) {
+          console.log('[Server]: Empty database detected. Seeding initial academic data...');
+          const seedDatabase = require('./config/seed');
+          await seedDatabase();
+        }
+      } catch (seedErr) {
+        console.warn(`[Server Warning]: Auto-seeding skipped: ${seedErr.message}`);
+      }
+    }
+
     server = app.listen(PORT, () => {
       console.log(`[Server]: EngiLab API listening on port ${PORT} [${NODE_ENV}]`);
     });
