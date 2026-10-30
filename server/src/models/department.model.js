@@ -23,7 +23,20 @@ const departmentSchema = new mongoose.Schema(
       trim: true,
       default: ''
     },
+    slug: {
+      type: String,
+      trim: true,
+      lowercase: true,
+      default: function () {
+        return this.code ? this.code.toLowerCase() : '';
+      }
+    },
     admin: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'User',
+      default: null
+    },
+    headOfDepartment: {
       type: mongoose.Schema.Types.ObjectId,
       ref: 'User',
       default: null
@@ -32,6 +45,10 @@ const departmentSchema = new mongoose.Schema(
       type: String,
       enum: ['ACTIVE', 'INACTIVE'],
       default: 'ACTIVE'
+    },
+    isActive: {
+      type: Boolean,
+      default: true
     }
   },
   {
