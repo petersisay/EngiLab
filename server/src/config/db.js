@@ -59,7 +59,9 @@ const connectDB = async () => {
       if (!memServer) {
         memServer = await MongoMemoryServer.create();
       }
-      uri = memServer.getUri();
+      const baseUri = memServer.getUri();
+      uri = baseUri.endsWith('/') ? `${baseUri}engilab` : `${baseUri}/engilab`;
+      process.env.MONGODB_URI = uri;
       const conn = await mongoose.connect(uri);
       console.log(`[Database]: Embedded in-memory MongoDB connected successfully at ${uri}`);
       return conn;
