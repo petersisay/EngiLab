@@ -1,4 +1,5 @@
 const ApiError = require('../utils/apiError');
+const env = require('../config/env');
 
 /**
  * Centralized Express error-handling middleware for EngiLab.
@@ -32,7 +33,7 @@ const errorMiddleware = (err, req, res, next) => {
     : 'Internal server error';
 
   // Server-side diagnostic logging in development mode without sending to client
-  if (process.env.NODE_ENV === 'development') {
+  if (!env.isProduction) {
     const method = req?.method || 'UNKNOWN';
     const path = req?.originalUrl || req?.url || 'UNKNOWN';
     console.error(`[Error Middleware] [${method}] ${path} - Status: ${statusCode} - ${err?.stack || err}`);
