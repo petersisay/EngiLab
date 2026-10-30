@@ -43,24 +43,24 @@ const registerStudent = async (req, res, next) => {
       throw new ApiError(409, 'A student with this Student ID is already registered.');
     }
 
+    const fullName = `${firstName.trim()} ${lastName.trim()}`.trim();
     const newUser = await User.create({
-      firstName: firstName.trim(),
-      lastName: lastName.trim(),
+      name: fullName,
       email: email.toLowerCase().trim(),
-      passwordHash: password,
+      password,
       role: 'STUDENT',
       department,
       studentId: studentId.trim(),
       academicYear: academicYear || null,
       semester: semester || null,
       phone: phone ? phone.trim() : '',
+      status: 'ACTIVE',
       isActive: true,
       isEmailVerified: false
     });
 
     // Populate department info for response
     const populatedUser = await User.findById(newUser._id)
-      .select('-passwordHash')
       .populate('department', 'name code slug');
 
     // Generate tokens and set cookies
@@ -109,10 +109,9 @@ const login = async (req, res, next) => {
     }
 
     const normalizedEmail = email.toLowerCase().trim();
-    const user = await User.findOne({ email: normalizedEmail }).populate(
-      'department',
-      'name code slug'
-    );
+    const user = await User.findOne({ email: normalizedEmail })
+      .select('+password')
+      .populate('department', 'name code slug');
 
     if (!user) {
       throw new ApiError(401, 'Invalid email or password credentials.');
@@ -131,7 +130,7 @@ const login = async (req, res, next) => {
     }
 
     // Update last login timestamp
-    user.lastLoginAt = new Date();
+    user.lastLogin = new Date();
     await user.save({ validateBeforeSave: false });
 
     // Issue tokens
@@ -147,6 +146,7 @@ const login = async (req, res, next) => {
 
     // Sanitize user object
     const userObj = user.toObject();
+    delete userObj.password;
     delete userObj.passwordHash;
 
     // Audit log
@@ -239,16 +239,18 @@ const updateProfile = async (req, res, next) => {
       throw new ApiError(404, 'User account not found.');
     }
 
-    if (firstName) user.firstName = firstName.trim();
-    if (lastName) user.lastName = lastName.trim();
+    if (firstName || lastName) {
+      const first = firstName ? firstName.trim() : (user.firstName || '');
+      const last = lastName ? lastName.trim() : (user.lastName || '');
+      user.name = `${first} ${last}`.trim();
+    }
     if (phone !== undefined) user.phone = phone.trim();
     if (bio !== undefined) user.bio = bio.trim();
-    if (avatarUrl !== undefined) user.avatarUrl = avatarUrl.trim();
+    if (avatarUrl !== undefined) user.avatar = avatarUrl.trim();
 
     await user.save();
 
     const updatedUser = await User.findById(user._id)
-      .select('-passwordHash')
       .populate('department', 'name code slug');
 
     return sendSuccess(res, {
@@ -287,7 +289,7 @@ const changePassword = async (req, res, next) => {
       throw new ApiError(401, 'Current password provided is incorrect.');
     }
 
-    user.passwordHash = newPassword;
+    user.password = newPassword;
     await user.save();
 
     await AuditLog.create({
