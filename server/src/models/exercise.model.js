@@ -33,6 +33,26 @@ const exerciseSchema = new mongoose.Schema(
       ref: 'User',
       required: [true, 'Instructor reference is required']
     },
+    createdBy: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'User',
+      default: function () {
+        return this.instructor || null;
+      }
+    },
+    exerciseNumber: {
+      type: String,
+      trim: true,
+      default: ''
+    },
+    weekNumber: {
+      type: Number,
+      default: 1
+    },
+    orderIndex: {
+      type: Number,
+      default: 1
+    },
     instructions: {
       type: String,
       trim: true,
@@ -63,6 +83,10 @@ const exerciseSchema = new mongoose.Schema(
       type: String,
       enum: ['DRAFT', 'PUBLISHED', 'ARCHIVED'],
       default: 'PUBLISHED'
+    },
+    isPublished: {
+      type: Boolean,
+      default: true
     }
   },
   {
