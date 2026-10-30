@@ -13,9 +13,11 @@ const LaboratoryExercise = require('../models/exercise.model');
  */
 const seedDatabase = async () => {
   try {
-    console.log('[Seed] Connecting to MongoDB...');
-    await mongoose.connect(env.MONGODB_URI);
-    console.log('[Seed] Connected to MongoDB.');
+    if (mongoose.connection.readyState !== 1) {
+      console.log('[Seed] Connecting to MongoDB...');
+      await mongoose.connect(process.env.MONGODB_URI || env.MONGODB_URI);
+      console.log('[Seed] Connected to MongoDB.');
+    }
 
     // 1. Seed Departments (ECE & EPCE)
     const departmentsData = [
