@@ -48,6 +48,10 @@ const courseSchema = new mongoose.Schema(
       type: String,
       enum: ['ACTIVE', 'ARCHIVED'],
       default: 'ACTIVE'
+    },
+    isActive: {
+      type: Boolean,
+      default: true
     }
   },
   {
