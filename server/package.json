@@ -7,7 +7,8 @@
   "scripts": {
     "start": "node src/server.js",
     "dev": "nodemon src/server.js",
-    "test": "jest"
+    "test": "node test/workflow.test.js && node test/security.test.js",
+    "seed": "node src/config/seed.js"
   },
   "dependencies": {
     "bcryptjs": "^2.4.3",
