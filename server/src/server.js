@@ -1,11 +1,10 @@
-require('dotenv').config();
-
 const mongoose = require('mongoose');
+const env = require('./config/env');
 const app = require('./app');
 const connectDB = require('./config/db');
 
-const PORT = process.env.PORT || 5000;
-const NODE_ENV = process.env.NODE_ENV || 'development';
+const PORT = env.PORT;
+const NODE_ENV = env.NODE_ENV;
 
 let server;
 let isShuttingDown = false;
