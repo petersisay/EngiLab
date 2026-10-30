@@ -44,6 +44,11 @@ const courseSchema = new mongoose.Schema(
         ref: 'User'
       }
     ],
+    coordinator: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'User',
+      default: null
+    },
     status: {
       type: String,
       enum: ['ACTIVE', 'ARCHIVED'],
