@@ -31,7 +31,6 @@ const academicYearSchema = new mongoose.Schema(
   }
 );
 
-academicYearSchema.index({ code: 1 });
 academicYearSchema.index({ isCurrent: 1 });
 
 const AcademicYear = mongoose.model('AcademicYear', academicYearSchema);
