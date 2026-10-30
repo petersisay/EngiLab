@@ -49,6 +49,10 @@ const userSchema = new mongoose.Schema(
       enum: ['ACTIVE', 'PENDING', 'SUSPENDED'],
       default: 'ACTIVE'
     },
+    isActive: {
+      type: Boolean,
+      default: true
+    },
     avatar: {
       type: String,
       default: ''
@@ -63,9 +67,21 @@ const userSchema = new mongoose.Schema(
     }
   },
   {
-    timestamps: true
+    timestamps: true,
+    toJSON: { virtuals: true },
+    toObject: { virtuals: true }
   }
 );
+
+userSchema.virtual('firstName').get(function () {
+  return this.name ? this.name.split(' ')[0] : '';
+});
+
+userSchema.virtual('lastName').get(function () {
+  if (!this.name) return '';
+  const parts = this.name.split(' ');
+  return parts.slice(1).join(' ') || '';
+});
 
 // Hash password before saving
 userSchema.pre('save', async function (next) {
@@ -77,8 +93,13 @@ userSchema.pre('save', async function (next) {
   next();
 });
 
-// Instance method to check password validity
+// Instance method to check password validity (safely retrieves password if excluded via select)
 userSchema.methods.comparePassword = async function (candidatePassword) {
+  if (!this.password) {
+    const userWithPassword = await this.constructor.findById(this._id).select('+password');
+    if (!userWithPassword || !userWithPassword.password) return false;
+    return bcrypt.compare(candidatePassword, userWithPassword.password);
+  }
   return bcrypt.compare(candidatePassword, this.password);
 };
 
