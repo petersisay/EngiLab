@@ -8,6 +8,18 @@ const sendSuccess = require('./utils/apiResponse');
 const notFoundMiddleware = require('./middleware/notFound.middleware');
 const errorMiddleware = require('./middleware/error.middleware');
 
+// Route modules
+const authRoutes = require('./routes/auth.routes');
+const userRoutes = require('./routes/user.routes');
+const departmentRoutes = require('./routes/department.routes');
+const academicRoutes = require('./routes/academic.routes');
+const exerciseRoutes = require('./routes/exercise.routes');
+const submissionRoutes = require('./routes/submission.routes');
+const gradeRoutes = require('./routes/grade.routes');
+const resourceRoutes = require('./routes/resource.routes');
+const communicationRoutes = require('./routes/communication.routes');
+const adminRoutes = require('./routes/admin.routes');
+
 const app = express();
 
 // Secure HTTP response headers
@@ -22,6 +34,21 @@ app.use(
     allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With']
   })
 );
+
+// Cookie parsing middleware
+app.use((req, res, next) => {
+  req.cookies = {};
+  const cookieHeader = req.headers.cookie;
+  if (cookieHeader) {
+    cookieHeader.split(';').forEach((cookie) => {
+      const parts = cookie.split('=');
+      const name = parts[0].trim();
+      const value = parts.slice(1).join('=').trim();
+      if (name) req.cookies[name] = decodeURIComponent(value);
+    });
+  }
+  next();
+});
 
 // Request body parsers
 app.use(express.json({ limit: '10mb' }));
@@ -45,6 +72,18 @@ app.get('/api/health', (req, res) => {
     }
   });
 });
+
+// API v1 Routes
+app.use('/api/v1/auth', authRoutes);
+app.use('/api/v1/users', userRoutes);
+app.use('/api/v1/departments', departmentRoutes);
+app.use('/api/v1/academic', academicRoutes);
+app.use('/api/v1/exercises', exerciseRoutes);
+app.use('/api/v1/submissions', submissionRoutes);
+app.use('/api/v1/grades', gradeRoutes);
+app.use('/api/v1/resources', resourceRoutes);
+app.use('/api/v1/communication', communicationRoutes);
+app.use('/api/v1/admin', adminRoutes);
 
 // 404 Fallback for unhandled endpoints
 app.use(notFoundMiddleware);
