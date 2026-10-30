@@ -253,8 +253,10 @@ const seedDatabase = async () => {
   } catch (err) {
     console.error('[Seed] Error seeding database:', err);
   } finally {
-    await mongoose.disconnect();
-    console.log('[Seed] Disconnected from MongoDB.');
+    if (require.main === module) {
+      await mongoose.disconnect();
+      console.log('[Seed] Disconnected from MongoDB.');
+    }
   }
 };
 
