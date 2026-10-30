@@ -1,5 +1,6 @@
 const mongoose = require('mongoose');
 const bcrypt = require('bcryptjs');
+require('./department.model');
 
 const userSchema = new mongoose.Schema(
   {
