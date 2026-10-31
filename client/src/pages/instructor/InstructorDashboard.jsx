@@ -667,6 +667,8 @@ const InstructorDashboard = () => {
                         ·{' '}
                         {typeof c.academicYear === 'object' && c.academicYear !== null
                           ? c.academicYear.year || '2026/2027'
+                          : typeof c.academicYear === 'string' && c.academicYear.length === 24
+                          ? '2026/2027'
                           : `Year ${c.academicYear || 3}`}
                       </p>
                     </div>
