@@ -532,8 +532,10 @@ const StudentDashboard = () => {
                           Coordinator / Instructor
                         </span>
                         <p className="text-xs font-semibold text-cyan-300 mt-0.5">
-                          {c.coordinator
-                            ? `${c.coordinator.firstName} ${c.coordinator.lastName}`
+                          {c.coordinator && typeof c.coordinator === 'object'
+                            ? `${c.coordinator.firstName || ''} ${c.coordinator.lastName || ''}`.trim() || 'Faculty Lecturer'
+                            : typeof c.coordinator === 'string'
+                            ? c.coordinator
                             : 'Faculty Lecturer'}
                         </p>
                       </div>
