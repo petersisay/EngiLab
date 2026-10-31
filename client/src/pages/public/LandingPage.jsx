@@ -45,16 +45,159 @@ const LandingPage = () => {
 
       {/* Hero Section */}
       <section className="relative overflow-hidden pt-12 pb-24 lg:pt-20 lg:pb-32">
-        {/* Background Circuit Image with Dark Navy Overlays */}
-        <div className="absolute inset-0 z-0">
+        {/* Animated Background Circuit Image with Light Green & Cyan Energy Elements */}
+        <div className="absolute inset-0 z-0 overflow-hidden pointer-events-none select-none">
+          {/* Animated Floating Base Image with higher clarity and luminescence */}
           <img
             src="/engilab-hero-bg.png"
             alt="Engineering Lab Circuit Background"
-            className="w-full h-full object-cover object-center opacity-30 mix-blend-screen scale-105"
+            className="w-full h-full object-cover object-center opacity-45 mix-blend-screen animate-circuit-float filter brightness-125 contrast-110"
           />
-          <div className="absolute inset-0 bg-gradient-to-b from-slate-950/80 via-slate-950/95 to-slate-950"></div>
-          <div className="absolute top-1/4 left-1/2 -translate-x-1/2 w-96 h-96 bg-cyan-500/10 rounded-full blur-3xl pointer-events-none"></div>
-          <div className="absolute top-1/3 right-1/4 w-80 h-80 bg-blue-600/10 rounded-full blur-3xl pointer-events-none"></div>
+
+          {/* Light-Green Engineering Workbench Dot Matrix Overlay */}
+          <div
+            className="absolute inset-0 opacity-25"
+            style={{
+              backgroundImage: 'radial-gradient(rgba(52, 211, 153, 0.35) 1px, transparent 1px)',
+              backgroundSize: '36px 36px'
+            }}
+          ></div>
+
+          {/* Animated Light Green & Emerald Energy Auroras */}
+          <div className="absolute -top-24 left-1/4 w-[500px] h-[500px] bg-gradient-to-tr from-emerald-500/25 to-teal-400/20 rounded-full blur-[100px] animate-aurora-green"></div>
+          <div
+            className="absolute top-1/3 -right-20 w-[450px] h-[450px] bg-gradient-to-bl from-green-400/20 to-emerald-600/15 rounded-full blur-[110px] animate-aurora-green"
+            style={{ animationDelay: '4s' }}
+          ></div>
+          <div className="absolute bottom-10 left-1/3 w-[550px] h-[350px] bg-cyan-400/15 rounded-full blur-[100px] animate-aurora-cyan"></div>
+
+          {/* Luminous Sweep Beam (Light pulse traveling across circuits) */}
+          <div className="absolute -top-1/2 -left-1/2 w-[200%] h-[200%] pointer-events-none overflow-hidden">
+            <div className="w-48 h-full bg-gradient-to-r from-transparent via-emerald-400/15 to-transparent animate-sweep-beam"></div>
+          </div>
+
+          {/* Animated Laboratory Vector Circuit Traces & Oscilloscope Signal Waves */}
+          <svg
+            className="absolute inset-0 w-full h-full opacity-60 pointer-events-none"
+            xmlns="http://www.w3.org/2000/svg"
+            viewBox="0 0 1440 800"
+            preserveAspectRatio="none"
+          >
+            <defs>
+              <linearGradient id="greenSignalGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+                <stop offset="0%" stopColor="#10b981" stopOpacity="0.1" />
+                <stop offset="50%" stopColor="#34d399" stopOpacity="0.85" />
+                <stop offset="100%" stopColor="#06b6d4" stopOpacity="0.1" />
+              </linearGradient>
+              <linearGradient id="cyanSignalGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+                <stop offset="0%" stopColor="#06b6d4" stopOpacity="0.1" />
+                <stop offset="50%" stopColor="#6ee7b7" stopOpacity="0.9" />
+                <stop offset="100%" stopColor="#3b82f6" stopOpacity="0.1" />
+              </linearGradient>
+            </defs>
+
+            {/* Circuit Busbar Path 1 - Electrical Power & Signal Transmission */}
+            <path
+              d="M-50,220 L300,220 L420,340 L850,340 L950,240 L1500,240"
+              fill="none"
+              stroke="#10b981"
+              strokeWidth="1.5"
+              strokeOpacity="0.25"
+            />
+            <path
+              d="M-50,220 L300,220 L420,340 L850,340 L950,240 L1500,240"
+              fill="none"
+              stroke="url(#greenSignalGrad)"
+              strokeWidth="2.5"
+              className="animate-signal-pulse"
+            />
+
+            {/* Circuit Busbar Path 2 - Control & Telecommunications */}
+            <path
+              d="M-50,560 L240,560 L380,420 L1020,420 L1150,550 L1500,550"
+              fill="none"
+              stroke="#06b6d4"
+              strokeWidth="1.5"
+              strokeOpacity="0.2"
+            />
+            <path
+              d="M-50,560 L240,560 L380,420 L1020,420 L1150,550 L1500,550"
+              fill="none"
+              stroke="url(#cyanSignalGrad)"
+              strokeWidth="2.5"
+              className="animate-signal-pulse"
+              style={{ animationDelay: '3s' }}
+            />
+
+            {/* Glowing Circuit Nodes */}
+            <circle cx="300" cy="220" r="4.5" fill="#34d399" className="animate-node-pulse" />
+            <circle
+              cx="420"
+              cy="340"
+              r="3.5"
+              fill="#6ee7b7"
+              className="animate-node-pulse"
+              style={{ animationDelay: '1.2s' }}
+            />
+            <circle
+              cx="850"
+              cy="340"
+              r="4"
+              fill="#34d399"
+              className="animate-node-pulse"
+              style={{ animationDelay: '2s' }}
+            />
+            <circle
+              cx="950"
+              cy="240"
+              r="3.5"
+              fill="#10b981"
+              className="animate-node-pulse"
+              style={{ animationDelay: '0.6s' }}
+            />
+            <circle
+              cx="240"
+              cy="560"
+              r="4"
+              fill="#6ee7b7"
+              className="animate-node-pulse"
+              style={{ animationDelay: '1.8s' }}
+            />
+            <circle
+              cx="1020"
+              cy="420"
+              r="4.5"
+              fill="#34d399"
+              className="animate-node-pulse"
+              style={{ animationDelay: '2.5s' }}
+            />
+          </svg>
+
+          {/* Smooth Oscilloscope Wave at bottom representing DSP / AC Power Signal */}
+          <div className="absolute -bottom-6 left-0 w-[200%] h-24 overflow-hidden opacity-35">
+            <svg
+              className="w-full h-full animate-wave-flow"
+              viewBox="0 0 2880 100"
+              fill="none"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                d="M0,50 Q120,5 240,50 T480,50 T720,50 T960,50 T1200,50 T1440,50 T1680,50 T1920,50 T2160,50 T2400,50 T2640,50 T2880,50"
+                stroke="url(#greenSignalGrad)"
+                strokeWidth="2"
+                strokeDasharray="6 4"
+              />
+              <path
+                d="M0,50 Q120,95 240,50 T480,50 T720,50 T960,50 T1200,50 T1440,50 T1680,50 T1920,50 T2160,50 T2400,50 T2640,50 T2880,50"
+                stroke="#34d399"
+                strokeWidth="1.5"
+                opacity="0.6"
+              />
+            </svg>
+          </div>
+
+          {/* Vignette Gradient so text stays razor sharp */}
+          <div className="absolute inset-0 bg-gradient-to-b from-slate-950/70 via-slate-950/80 to-slate-950"></div>
         </div>
 
         <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
