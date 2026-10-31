@@ -491,7 +491,13 @@ const DepartmentDashboard = () => {
                         Semester & Year
                       </span>
                       <p className="text-xs font-semibold text-slate-200 mt-0.5">
-                        Semester {course.semester || 1} · Year {course.academicYear || 3}
+                        {typeof course.semester === 'object' && course.semester !== null
+                          ? course.semester.name || `Semester ${course.semester.term || 'I'}`
+                          : `Semester ${course.semester || 1}`}{' '}
+                        ·{' '}
+                        {typeof course.academicYear === 'object' && course.academicYear !== null
+                          ? course.academicYear.year || '2026/2027'
+                          : `Year ${course.academicYear || 3}`}
                       </p>
                     </div>
 
@@ -500,8 +506,10 @@ const DepartmentDashboard = () => {
                         Coordinator
                       </span>
                       <p className="text-xs font-semibold text-cyan-300 mt-0.5">
-                        {course.coordinator
-                          ? `${course.coordinator.firstName} ${course.coordinator.lastName}`
+                        {course.coordinator && typeof course.coordinator === 'object'
+                          ? `${course.coordinator.firstName || ''} ${course.coordinator.lastName || ''}`.trim() || 'Assigned Faculty'
+                          : typeof course.coordinator === 'string'
+                          ? course.coordinator
                           : 'Assigned Faculty'}
                       </p>
                     </div>
