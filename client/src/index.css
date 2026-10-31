@@ -69,3 +69,127 @@
 ::-webkit-scrollbar-thumb:hover {
   background: #334155;
 }
+
+/* =========================================================================
+   ANIMATED CIRCUIT & LIGHT-GREEN ENERGY GLOWS (Landing Page Hero)
+   ========================================================================= */
+
+@keyframes circuitFloat {
+  0% {
+    transform: scale(1.04) translate(0, 0);
+  }
+  50% {
+    transform: scale(1.08) translate(-1.2%, -1%);
+  }
+  100% {
+    transform: scale(1.04) translate(0, 0);
+  }
+}
+
+@keyframes auroraGreenPulse {
+  0%, 100% {
+    opacity: 0.35;
+    transform: scale(1) translate(0, 0);
+    filter: blur(80px);
+  }
+  50% {
+    opacity: 0.65;
+    transform: scale(1.2) translate(3%, 2%);
+    filter: blur(100px);
+  }
+}
+
+@keyframes auroraCyanPulse {
+  0%, 100% {
+    opacity: 0.3;
+    transform: scale(1.1) translate(0, 0);
+    filter: blur(90px);
+  }
+  50% {
+    opacity: 0.55;
+    transform: scale(0.95) translate(-3%, -2%);
+    filter: blur(75px);
+  }
+}
+
+@keyframes sweepBeam {
+  0% {
+    transform: translateX(-100%) translateY(-100%) rotate(35deg);
+    opacity: 0;
+  }
+  20% {
+    opacity: 0.6;
+  }
+  60% {
+    opacity: 0.6;
+  }
+  100% {
+    transform: translateX(250%) translateY(250%) rotate(35deg);
+    opacity: 0;
+  }
+}
+
+@keyframes signalPulseMove {
+  0% {
+    stroke-dashoffset: 600;
+    opacity: 0.2;
+  }
+  50% {
+    opacity: 0.9;
+  }
+  100% {
+    stroke-dashoffset: 0;
+    opacity: 0.2;
+  }
+}
+
+@keyframes nodeBlink {
+  0%, 100% {
+    transform: scale(1);
+    opacity: 0.4;
+  }
+  50% {
+    transform: scale(1.6);
+    opacity: 1;
+    filter: drop-shadow(0 0 8px #34d399);
+  }
+}
+
+@keyframes waveOscillate {
+  0% {
+    transform: translateX(0);
+  }
+  100% {
+    transform: translateX(-50%);
+  }
+}
+
+.animate-circuit-float {
+  animation: circuitFloat 24s ease-in-out infinite;
+}
+
+.animate-aurora-green {
+  animation: auroraGreenPulse 8s ease-in-out infinite;
+}
+
+.animate-aurora-cyan {
+  animation: auroraCyanPulse 10s ease-in-out infinite;
+}
+
+.animate-sweep-beam {
+  animation: sweepBeam 9s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+}
+
+.animate-signal-pulse {
+  stroke-dasharray: 120 180;
+  animation: signalPulseMove 6s linear infinite;
+}
+
+.animate-node-pulse {
+  animation: nodeBlink 3s ease-in-out infinite;
+}
+
+.animate-wave-flow {
+  animation: waveOscillate 18s linear infinite;
+}
+
