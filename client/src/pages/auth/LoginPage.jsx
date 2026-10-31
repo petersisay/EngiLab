@@ -56,11 +56,6 @@ const LoginPage = () => {
     }
   };
 
-  const setDemoCredentials = (demoEmail, demoPassword) => {
-    setEmail(demoEmail);
-    setPassword(demoPassword);
-    setErrorMessage('');
-  };
 
   return (
     <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col justify-between">
@@ -160,36 +155,6 @@ const LoginPage = () => {
                 )}
               </button>
             </form>
-
-            {/* Demo Quick-Fill Buttons */}
-            <div className="mt-8 pt-6 border-t border-slate-800 space-y-3">
-              <p className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider text-center">
-                Quick-Test Credentials:
-              </p>
-              <div className="grid grid-cols-2 gap-2 text-xs">
-                <button
-                  type="button"
-                  onClick={() =>
-                    setDemoCredentials('admin@engilab.astu.edu.et', 'Admin@EngiLab2025!')
-                  }
-                  className="p-2 rounded-lg bg-slate-800/80 hover:bg-slate-700 border border-slate-700 text-purple-300 text-left transition-colors"
-                >
-                  <span className="font-bold block text-[10px] text-purple-400">SUPER ADMIN</span>
-                  <span className="truncate block text-[11px]">admin@engilab</span>
-                </button>
-
-                <button
-                  type="button"
-                  onClick={() =>
-                    setDemoCredentials('dawit.kebede@astu.edu.et', 'Instructor@2025!')
-                  }
-                  className="p-2 rounded-lg bg-slate-800/80 hover:bg-slate-700 border border-slate-700 text-amber-300 text-left transition-colors"
-                >
-                  <span className="font-bold block text-[10px] text-amber-400">INSTRUCTOR</span>
-                  <span className="truncate block text-[11px]">dawit.kebede</span>
-                </button>
-              </div>
-            </div>
           </div>
 
           {/* Footer note */}
