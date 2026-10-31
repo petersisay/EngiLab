@@ -26,6 +26,36 @@ const Navbar = () => {
     setUserDropdownOpen(false);
   };
 
+  const handleGoHome = (e) => {
+    if (e) e.preventDefault();
+    if (location.pathname !== '/') {
+      navigate('/');
+    }
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+    if (window.location.hash) {
+      window.history.pushState(null, '', '/');
+    }
+    setMobileMenuOpen(false);
+  };
+
+  const handleScrollTo = (e, sectionId) => {
+    if (e) e.preventDefault();
+    if (location.pathname !== '/') {
+      navigate(`/#${sectionId}`);
+      setTimeout(() => {
+        const el = document.getElementById(sectionId);
+        if (el) el.scrollIntoView({ behavior: 'smooth' });
+      }, 100);
+    } else {
+      const el = document.getElementById(sectionId);
+      if (el) {
+        el.scrollIntoView({ behavior: 'smooth' });
+        window.history.pushState(null, '', `/#${sectionId}`);
+      }
+    }
+    setMobileMenuOpen(false);
+  };
+
   const getDashboardLink = () => {
     if (!user) return '/';
     switch (user.role) {
@@ -62,7 +92,11 @@ const Navbar = () => {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
           {/* Logo & Brand */}
-          <Link to="/" className="flex items-center space-x-3 group">
+          <Link
+            to="/"
+            onClick={handleGoHome}
+            className="flex items-center space-x-3 group cursor-pointer"
+          >
             <img
               src="/engilab-logo.png"
               alt="EngiLab Logo"
@@ -80,29 +114,39 @@ const Navbar = () => {
 
           {/* Desktop Navigation Links */}
           <nav className="hidden md:flex items-center space-x-6 text-sm font-medium">
-            <Link
-              to="/"
-              className={`transition-colors hover:text-cyan-400 ${
-                location.pathname === '/' ? 'text-cyan-400 font-semibold' : 'text-slate-300'
+            <a
+              href="/"
+              onClick={handleGoHome}
+              className={`transition-colors hover:text-cyan-400 cursor-pointer ${
+                location.pathname === '/' && !location.hash ? 'text-cyan-400 font-semibold' : 'text-slate-300'
               }`}
             >
               Overview
-            </Link>
+            </a>
             <a
               href="/#departments"
-              className="text-slate-300 hover:text-cyan-400 transition-colors"
+              onClick={(e) => handleScrollTo(e, 'departments')}
+              className={`transition-colors hover:text-cyan-400 cursor-pointer ${
+                location.hash === '#departments' ? 'text-cyan-400 font-semibold' : 'text-slate-300'
+              }`}
             >
               Departments
             </a>
             <a
               href="/#features"
-              className="text-slate-300 hover:text-cyan-400 transition-colors"
+              onClick={(e) => handleScrollTo(e, 'features')}
+              className={`transition-colors hover:text-cyan-400 cursor-pointer ${
+                location.hash === '#features' ? 'text-cyan-400 font-semibold' : 'text-slate-300'
+              }`}
             >
               Capabilities
             </a>
             <a
               href="/#workflow"
-              className="text-slate-300 hover:text-cyan-400 transition-colors"
+              onClick={(e) => handleScrollTo(e, 'workflow')}
+              className={`transition-colors hover:text-cyan-400 cursor-pointer ${
+                location.hash === '#workflow' ? 'text-cyan-400 font-semibold' : 'text-slate-300'
+              }`}
             >
               Lab Workflow
             </a>
@@ -208,31 +252,31 @@ const Navbar = () => {
       {/* Mobile Drawer */}
       {mobileMenuOpen && (
         <div className="md:hidden bg-slate-900 border-b border-slate-800 px-4 pt-2 pb-6 space-y-3">
-          <Link
-            to="/"
-            onClick={() => setMobileMenuOpen(false)}
-            className="block text-sm font-medium text-slate-300 hover:text-cyan-400 py-1"
+          <a
+            href="/"
+            onClick={handleGoHome}
+            className="block text-sm font-medium text-slate-300 hover:text-cyan-400 py-1 cursor-pointer"
           >
             Overview
-          </Link>
+          </a>
           <a
             href="/#departments"
-            onClick={() => setMobileMenuOpen(false)}
-            className="block text-sm font-medium text-slate-300 hover:text-cyan-400 py-1"
+            onClick={(e) => handleScrollTo(e, 'departments')}
+            className="block text-sm font-medium text-slate-300 hover:text-cyan-400 py-1 cursor-pointer"
           >
             Departments
           </a>
           <a
             href="/#features"
-            onClick={() => setMobileMenuOpen(false)}
-            className="block text-sm font-medium text-slate-300 hover:text-cyan-400 py-1"
+            onClick={(e) => handleScrollTo(e, 'features')}
+            className="block text-sm font-medium text-slate-300 hover:text-cyan-400 py-1 cursor-pointer"
           >
             Capabilities
           </a>
           <a
             href="/#workflow"
-            onClick={() => setMobileMenuOpen(false)}
-            className="block text-sm font-medium text-slate-300 hover:text-cyan-400 py-1"
+            onClick={(e) => handleScrollTo(e, 'workflow')}
+            className="block text-sm font-medium text-slate-300 hover:text-cyan-400 py-1 cursor-pointer"
           >
             Lab Workflow
           </a>
