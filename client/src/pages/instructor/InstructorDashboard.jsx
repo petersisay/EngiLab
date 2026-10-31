@@ -661,7 +661,13 @@ const InstructorDashboard = () => {
                         Semester & Year
                       </span>
                       <p className="text-xs font-semibold text-slate-200 mt-0.5">
-                        Semester {c.semester || 1} · Year {c.academicYear || 3}
+                        {typeof c.semester === 'object' && c.semester !== null
+                          ? c.semester.name || `Semester ${c.semester.term || 'I'}`
+                          : `Semester ${c.semester || 1}`}{' '}
+                        ·{' '}
+                        {typeof c.academicYear === 'object' && c.academicYear !== null
+                          ? c.academicYear.year || '2026/2027'
+                          : `Year ${c.academicYear || 3}`}
                       </p>
                     </div>
 
@@ -679,7 +685,9 @@ const InstructorDashboard = () => {
                         Lab Exercises
                       </span>
                       <p className="text-xs font-semibold text-blue-300 mt-0.5">
-                        {exercises.filter((ex) => (ex.course?._id || ex.course) === c._id).length} Active Exercises
+                        {exercises.filter(
+                          (ex) => (ex.course?._id || ex.course)?.toString() === c._id?.toString()
+                        ).length} Active Exercises
                       </p>
                     </div>
                   </div>
