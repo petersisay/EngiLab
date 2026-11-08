@@ -198,23 +198,6 @@ node test/workflow.test.js
 
 ---
 
-## Production Deployment
-
-- **Frontend (Vercel):**
-  - Root directory: `client`
-  - Build command: `npm run build`
-  - Output directory: `dist`
-  - SPA routing rewrite: Configured via `client/vercel.json`
-  - Environment variable: `VITE_API_URL` set to production backend URL.
-
-- **Backend (Render):**
-  - Root directory: `server`
-  - Build command: `npm install`
-  - Start command: `node src/server.js`
-  - Environment variables: Set `MONGODB_URI`, `JWT_ACCESS_SECRET`, `JWT_REFRESH_SECRET`, `CLIENT_URL`, and `NODE_ENV=production`.
-
----
-
 ## License
 
 Developed for the School of Electrical Engineering & Computing at **Adama Science and Technology University (ASTU)**.
