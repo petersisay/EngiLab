@@ -1,4 +1,5 @@
 const mongoose = require('mongoose');
+const crypto = require('crypto');
 const env = require('./env');
 const Department = require('../models/department.model');
 const User = require('../models/user.model');
@@ -6,6 +7,21 @@ const AcademicYear = require('../models/academicYear.model');
 const Semester = require('../models/semester.model');
 const Course = require('../models/course.model');
 const LaboratoryExercise = require('../models/exercise.model');
+
+/**
+ * Resolves a secure password for seeded accounts.
+ * Prioritizes environment variables, with cryptographically secure fallback.
+ */
+const resolveSeedPassword = (envKey, fallbackPrefix) => {
+  if (process.env[envKey] && process.env[envKey].trim()) {
+    return process.env[envKey].trim();
+  }
+  if (process.env.INITIAL_ADMIN_PASSWORD && process.env.INITIAL_ADMIN_PASSWORD.trim()) {
+    return process.env.INITIAL_ADMIN_PASSWORD.trim();
+  }
+  const randomSuffix = crypto.randomBytes(6).toString('hex');
+  return `ASTU#${fallbackPrefix}_${randomSuffix}!`;
+};
 
 /**
  * Database seeder script to initialize ASTU engineering departments,
@@ -54,29 +70,37 @@ const seedDatabase = async () => {
     }
 
     // 2. Seed Super Admin
-    const superAdminEmail = 'admin@engilab.astu.edu.et';
+    const superAdminEmail = process.env.INITIAL_ADMIN_EMAIL || 'admin@engilab.astu.edu.et';
     let superAdmin = await User.findOne({ email: superAdminEmail });
     if (!superAdmin) {
+      const adminPassword = resolveSeedPassword('INITIAL_ADMIN_PASSWORD', 'Admin');
       superAdmin = await User.create({
         name: 'System Administrator',
         email: superAdminEmail,
-        password: 'Admin@EngiLab2025!',
+        password: adminPassword,
         role: 'SUPER_ADMIN',
         department: null,
         status: 'ACTIVE',
         isEmailVerified: true
       });
       console.log(`[Seed] Created Super Admin: ${superAdminEmail}`);
+      if (!process.env.INITIAL_ADMIN_PASSWORD) {
+        console.log(`[Seed Security Notice] Temporary password for ${superAdminEmail}: ${adminPassword}`);
+      }
     } else {
       console.log(`[Seed] Super Admin already exists: ${superAdminEmail}`);
     }
 
     // 3. Seed Department Admins, Instructors, and Students
+    const deptAdminPassword = resolveSeedPassword('INITIAL_DEPT_ADMIN_PASSWORD', 'DeptAdmin');
+    const instructorPassword = resolveSeedPassword('INITIAL_INSTRUCTOR_PASSWORD', 'Instructor');
+    const studentPassword = resolveSeedPassword('INITIAL_STUDENT_PASSWORD', 'Student');
+
     const sampleUsers = [
       {
         name: 'Dr. Solomon Belay',
         email: 'solomon.belay@astu.edu.et',
-        password: 'Admin@EngiLab2025!',
+        password: deptAdminPassword,
         role: 'DEPARTMENT_ADMIN',
         department: departmentMap['ECE'],
         status: 'ACTIVE'
@@ -84,7 +108,7 @@ const seedDatabase = async () => {
       {
         name: 'Dr. Meron Abebe',
         email: 'meron.abebe@astu.edu.et',
-        password: 'Admin@EngiLab2025!',
+        password: deptAdminPassword,
         role: 'DEPARTMENT_ADMIN',
         department: departmentMap['EPCE'],
         status: 'ACTIVE'
@@ -92,7 +116,7 @@ const seedDatabase = async () => {
       {
         name: 'Dawit Kebede',
         email: 'dawit.kebede@astu.edu.et',
-        password: 'Instructor@2025!',
+        password: instructorPassword,
         role: 'INSTRUCTOR',
         department: departmentMap['ECE'],
         status: 'ACTIVE'
@@ -100,7 +124,7 @@ const seedDatabase = async () => {
       {
         name: 'Alemayehu Tadesse',
         email: 'alemayehu.tadesse@astu.edu.et',
-        password: 'Instructor@2025!',
+        password: instructorPassword,
         role: 'INSTRUCTOR',
         department: departmentMap['EPCE'],
         status: 'ACTIVE'
@@ -108,7 +132,7 @@ const seedDatabase = async () => {
       {
         name: 'Kidus Yohannes',
         email: 'kidus.yohannes@astu.edu.et',
-        password: 'Student@2025!',
+        password: studentPassword,
         role: 'STUDENT',
         studentId: 'ETS0450/14',
         department: departmentMap['ECE'],
@@ -117,7 +141,7 @@ const seedDatabase = async () => {
       {
         name: 'Bethlehem Haile',
         email: 'bethlehem.haile@astu.edu.et',
-        password: 'Student@2025!',
+        password: studentPassword,
         role: 'STUDENT',
         studentId: 'ETS0482/14',
         department: departmentMap['EPCE'],
