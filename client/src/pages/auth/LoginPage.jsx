@@ -166,39 +166,16 @@ const LoginPage = () => {
             </form>
           </div>
 
-          {/* Default Seeded Accounts for Testing (from README.md) */}
+          {/* Default Instructor Test Accounts */}
           <div className="p-5 rounded-2xl bg-slate-900/80 border border-slate-800 text-left space-y-3 shadow-xl backdrop-blur-md">
             <div className="flex items-center justify-between">
               <span className="text-xs font-bold uppercase tracking-wider text-slate-300">
-                Default Seeded Accounts for Testing
+                Department Instructor Demo Accounts
               </span>
               <span className="text-[10px] text-cyan-400 font-medium">Click to prefill</span>
             </div>
 
             <div className="space-y-2">
-              <button
-                type="button"
-                onClick={() => {
-                  setEmail('admin@engilab.astu.edu.et');
-                  setPassword('Admin@EngiLab');
-                  setErrorMessage('');
-                }}
-                className="w-full text-left p-2.5 rounded-xl bg-slate-800/60 hover:bg-slate-800 border border-slate-700/50 hover:border-cyan-500/50 transition-all group flex items-center justify-between"
-              >
-                <div>
-                  <div className="flex items-center space-x-2">
-                    <span className="text-xs font-semibold text-white">Super Admin</span>
-                    <span className="text-[10px] px-1.5 py-0.5 rounded bg-cyan-500/10 text-cyan-400 font-mono">
-                      Cross-Institutional
-                    </span>
-                  </div>
-                  <p className="text-[11px] text-slate-400 font-mono mt-0.5">admin@engilab.astu.edu.et</p>
-                </div>
-                <span className="text-xs text-slate-500 group-hover:text-cyan-400 font-semibold font-mono">
-                  Admin@EngiLab
-                </span>
-              </button>
-
               <button
                 type="button"
                 onClick={() => {
