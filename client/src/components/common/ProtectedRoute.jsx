@@ -27,9 +27,9 @@ const ProtectedRoute = ({ children, allowedRoles }) => {
     return <Navigate to="/login" state={{ from: location }} replace />;
   }
 
-  if (allowedRoles && !allowedRoles.includes(user.role)) {
+  if (allowedRoles && (!user?.role || !allowedRoles.includes(user.role))) {
     // Redirect to user's authorized home dashboard
-    switch (user.role) {
+    switch (user?.role) {
       case 'SUPER_ADMIN':
         return <Navigate to="/admin" replace />;
       case 'DEPARTMENT_ADMIN':

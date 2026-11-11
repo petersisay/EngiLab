@@ -2,6 +2,7 @@ import React, { useEffect } from 'react';
 import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { AuthProvider } from './context/AuthContext';
 import ProtectedRoute from './components/common/ProtectedRoute';
+import ErrorBoundary from './components/common/ErrorBoundary';
 
 // Public Pages
 import LandingPage from './pages/public/LandingPage';
@@ -29,55 +30,57 @@ function App() {
     <BrowserRouter>
       <ScrollToTop />
       <AuthProvider>
-        <Routes>
-          {/* Public Routes */}
-          <Route path="/" element={<LandingPage />} />
-          <Route path="/login" element={<LoginPage />} />
-          <Route path="/register" element={<RegisterPage />} />
+        <ErrorBoundary>
+          <Routes>
+            {/* Public Routes */}
+            <Route path="/" element={<LandingPage />} />
+            <Route path="/login" element={<LoginPage />} />
+            <Route path="/register" element={<RegisterPage />} />
 
-          {/* Super Admin Protected Routes */}
-          <Route
-            path="/admin/*"
-            element={
-              <ProtectedRoute allowedRoles={['SUPER_ADMIN']}>
-                <AdminDashboard />
-              </ProtectedRoute>
-            }
-          />
+            {/* Super Admin Protected Routes */}
+            <Route
+              path="/admin/*"
+              element={
+                <ProtectedRoute allowedRoles={['SUPER_ADMIN']}>
+                  <AdminDashboard />
+                </ProtectedRoute>
+              }
+            />
 
-          {/* Department Admin Protected Routes */}
-          <Route
-            path="/department/*"
-            element={
-              <ProtectedRoute allowedRoles={['SUPER_ADMIN', 'DEPARTMENT_ADMIN']}>
-                <DepartmentDashboard />
-              </ProtectedRoute>
-            }
-          />
+            {/* Department Admin Protected Routes */}
+            <Route
+              path="/department/*"
+              element={
+                <ProtectedRoute allowedRoles={['SUPER_ADMIN', 'DEPARTMENT_ADMIN']}>
+                  <DepartmentDashboard />
+                </ProtectedRoute>
+              }
+            />
 
-          {/* Instructor Protected Routes */}
-          <Route
-            path="/instructor/*"
-            element={
-              <ProtectedRoute allowedRoles={['SUPER_ADMIN', 'DEPARTMENT_ADMIN', 'INSTRUCTOR']}>
-                <InstructorDashboard />
-              </ProtectedRoute>
-            }
-          />
+            {/* Instructor Protected Routes */}
+            <Route
+              path="/instructor/*"
+              element={
+                <ProtectedRoute allowedRoles={['SUPER_ADMIN', 'DEPARTMENT_ADMIN', 'INSTRUCTOR']}>
+                  <InstructorDashboard />
+                </ProtectedRoute>
+              }
+            />
 
-          {/* Student Protected Routes */}
-          <Route
-            path="/student/*"
-            element={
-              <ProtectedRoute allowedRoles={['STUDENT']}>
-                <StudentDashboard />
-              </ProtectedRoute>
-            }
-          />
+            {/* Student Protected Routes */}
+            <Route
+              path="/student/*"
+              element={
+                <ProtectedRoute allowedRoles={['SUPER_ADMIN', 'STUDENT']}>
+                  <StudentDashboard />
+                </ProtectedRoute>
+              }
+            />
 
-          {/* Catch-all route */}
-          <Route path="*" element={<Navigate to="/" replace />} />
-        </Routes>
+            {/* Catch-all route */}
+            <Route path="*" element={<Navigate to="/" replace />} />
+          </Routes>
+        </ErrorBoundary>
       </AuthProvider>
     </BrowserRouter>
   );

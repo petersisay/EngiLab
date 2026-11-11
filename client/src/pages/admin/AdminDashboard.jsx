@@ -706,7 +706,7 @@ const AdminDashboard = () => {
                                 roleColors[u.role] || 'bg-slate-700 text-slate-300'
                               }`}
                             >
-                              {u.role.replace('_', ' ')}
+                              {(u.role || '').replace(/_/g, ' ')}
                             </span>
                           </td>
                           <td className="px-5 py-4">

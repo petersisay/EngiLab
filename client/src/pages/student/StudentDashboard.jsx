@@ -194,12 +194,16 @@ const StudentDashboard = () => {
   };
 
   // View Title and Subtitle
+  const studentName = user
+    ? user.name || `${user.firstName || ''} ${user.lastName || ''}`.trim() || 'Student'
+    : 'Student';
+  const studentDept = user?.department?.code || user?.department?.name || 'ASTU Engineering';
+  const studentId = user?.studentId || 'ASTU Student';
+
   const viewMeta = {
     overview: {
       title: 'Student Laboratory Workspace',
-      subtitle: `Welcome, ${user.firstName} ${user.lastName} (${user.studentId || 'ASTU Student'}) · ${
-        user.department?.code || 'ASTU Engineering'
-      }`
+      subtitle: `Welcome, ${studentName} (${studentId}) · ${studentDept}`
     },
     courses: {
       title: 'My Enrolled Laboratory Courses',
@@ -338,7 +342,7 @@ const StudentDashboard = () => {
                 <div className="space-y-4">
                   {exercises.map((ex) => {
                     const userSubmission = submissions.find(
-                      (s) => (s.exercise?._id || s.exercise)?.toString() === ex._id.toString()
+                      (s) => (s?.exercise?._id || s?.exercise)?.toString() === (ex?._id || ex?.id)?.toString()
                     );
                     return (
                       <div
@@ -492,7 +496,7 @@ const StudentDashboard = () => {
             {courses.map((enrollment) => {
               const c = enrollment.course || enrollment;
               const courseExercises = exercises.filter(
-                (ex) => (ex.course?._id || ex.course)?.toString() === (c._id || c.id)?.toString()
+                (ex) => (ex?.course?._id || ex?.course)?.toString() === (c?._id || c?.id)?.toString()
               );
               return (
                 <div
@@ -588,7 +592,7 @@ const StudentDashboard = () => {
           <div className="space-y-4">
             {exercises.map((ex) => {
               const userSubmission = submissions.find(
-                (s) => (s.exercise?._id || s.exercise)?.toString() === ex._id.toString()
+                (s) => (s?.exercise?._id || s?.exercise)?.toString() === (ex?._id || ex?.id)?.toString()
               );
               const deadlineDate = ex.deadline ? new Date(ex.deadline) : null;
               const isPast = deadlineDate && deadlineDate < new Date();
@@ -720,13 +724,13 @@ const StudentDashboard = () => {
                       </p>
                     </div>
 
-                    {sub.grade ? (
+                    {sub.grade && typeof sub.grade === 'object' ? (
                       <div className="p-3 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-right shrink-0">
                         <span className="text-[10px] font-bold uppercase tracking-wider text-emerald-400 block">
                           Awarded Mark
                         </span>
                         <span className="text-2xl font-extrabold text-emerald-400">
-                          {sub.grade.score} <span className="text-xs text-slate-400">/ 100</span>
+                          {sub.grade.score ?? '—'} <span className="text-xs text-slate-400">/ 100</span>
                         </span>
                       </div>
                     ) : (
@@ -739,7 +743,7 @@ const StudentDashboard = () => {
                     )}
                   </div>
 
-                  {sub.grade && (
+                  {sub.grade && typeof sub.grade === 'object' && (
                     <div className="p-4 rounded-xl bg-slate-900/60 border border-slate-700/60 space-y-2 text-xs">
                       <span className="font-bold text-white block">Instructor Evaluation & Feedback</span>
                       <p className="text-slate-300 leading-relaxed">

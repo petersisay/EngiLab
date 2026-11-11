@@ -20,7 +20,7 @@ const Sidebar = () => {
   const { user } = useAuth();
   if (!user) return null;
 
-  const role = user.role;
+  const role = user?.role || 'STUDENT';
 
   const getNavSections = () => {
     switch (role) {
@@ -92,14 +92,14 @@ const Sidebar = () => {
         <div className="px-3 py-3 rounded-xl bg-slate-800/60 border border-slate-700/60">
           <div className="flex items-center space-x-3">
             <div className="w-9 h-9 rounded-full bg-gradient-to-tr from-cyan-600 to-blue-600 flex items-center justify-center text-white text-xs font-bold border border-cyan-400/30">
-              {user.firstName ? user.firstName[0] : 'U'}
+              {(user.name?.[0] || user.firstName?.[0] || 'U').toUpperCase()}
             </div>
             <div className="flex flex-col min-w-0">
               <span className="text-xs font-bold text-white truncate">
-                {user.firstName} {user.lastName}
+                {user.name || `${user.firstName || ''} ${user.lastName || ''}`.trim() || 'EngiLab User'}
               </span>
               <span className="text-[10px] text-cyan-400 font-semibold tracking-wider uppercase">
-                {role.replace('_', ' ')}
+                {(role || '').replace(/_/g, ' ')}
               </span>
             </div>
           </div>

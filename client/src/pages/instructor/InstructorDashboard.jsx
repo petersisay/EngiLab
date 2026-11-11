@@ -312,11 +312,15 @@ const InstructorDashboard = () => {
   const pendingCount = submissions.filter((s) => s.status === 'SUBMITTED').length;
   const gradedCount = submissions.filter((s) => s.status === 'GRADED').length;
 
+  const instructorName = user
+    ? user.name || `${user.firstName || ''} ${user.lastName || ''}`.trim() || 'Instructor'
+    : 'Instructor';
+
   // Title and subtitle dynamic per view
   const viewTitles = {
     overview: {
       title: 'Instructor Teaching Studio',
-      subtitle: `Welcome, ${user.firstName} ${user.lastName} · Course Laboratory Evaluations & Academic Delivery`
+      subtitle: `Welcome, ${instructorName} · Course Laboratory Evaluations & Academic Delivery`
     },
     courses: {
       title: 'My Laboratory Teaching Courses',

@@ -171,14 +171,14 @@ const Navbar = () => {
                     className="flex items-center space-x-2.5 p-1.5 rounded-lg hover:bg-slate-800 transition-colors"
                   >
                     <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-cyan-600 to-blue-600 flex items-center justify-center text-white text-xs font-bold border border-cyan-400/30">
-                      {user.firstName ? user.firstName[0] : 'U'}
+                      {(user.name?.[0] || user.firstName?.[0] || 'U').toUpperCase()}
                     </div>
                     <div className="flex flex-col text-left">
                       <span className="text-xs font-semibold text-white leading-tight">
-                        {user.firstName} {user.lastName}
+                        {user.name || `${user.firstName || ''} ${user.lastName || ''}`.trim() || 'EngiLab User'}
                       </span>
                       <span className="text-[10px] text-slate-400 uppercase font-medium">
-                        {user.role.replace('_', ' ')}
+                        {(user.role || '').replace(/_/g, ' ')}
                       </span>
                     </div>
                     <ChevronDown className="w-3.5 h-3.5 text-slate-400" />
@@ -195,7 +195,7 @@ const Navbar = () => {
                             user.role
                           )}`}
                         >
-                          {user.role.replace('_', ' ')}
+                          {(user.role || '').replace(/_/g, ' ')}
                         </span>
                       </div>
 
@@ -289,7 +289,7 @@ const Navbar = () => {
                   onClick={() => setMobileMenuOpen(false)}
                   className="w-full block text-center py-2 text-xs font-semibold rounded-lg bg-cyan-500/20 text-cyan-400 border border-cyan-500/30"
                 >
-                  Go to Dashboard ({user.role})
+                  Go to Dashboard ({(user?.role || '').replace(/_/g, ' ')})
                 </Link>
                 <button
                   onClick={handleLogout}

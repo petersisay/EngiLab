@@ -35,26 +35,24 @@ const LoginPage = () => {
     setSubmitting(false);
 
     if (res.success) {
-      if (from) {
-        navigate(from, { replace: true });
-      } else {
-        // Direct to role home
-        switch (res.user.role) {
-          case 'SUPER_ADMIN':
-            navigate('/admin', { replace: true });
-            break;
-          case 'DEPARTMENT_ADMIN':
-            navigate('/department', { replace: true });
-            break;
-          case 'INSTRUCTOR':
-            navigate('/instructor', { replace: true });
-            break;
-          case 'STUDENT':
-          default:
-            navigate('/student', { replace: true });
-            break;
-        }
-      }
+      const userRole = res.user?.role || 'STUDENT';
+      const roleHomeMap = {
+        SUPER_ADMIN: '/admin',
+        DEPARTMENT_ADMIN: '/department',
+        INSTRUCTOR: '/instructor',
+        STUDENT: '/student'
+      };
+      const defaultHome = roleHomeMap[userRole] || '/student';
+
+      // Check whether `from` is compatible with this user's role
+      const isPathAllowed = from && (
+        (userRole === 'SUPER_ADMIN') ||
+        (userRole === 'DEPARTMENT_ADMIN' && (from.startsWith('/department') || from.startsWith('/instructor'))) ||
+        (userRole === 'INSTRUCTOR' && from.startsWith('/instructor')) ||
+        (userRole === 'STUDENT' && from.startsWith('/student'))
+      );
+
+      navigate(isPathAllowed ? from : defaultHome, { replace: true });
     } else {
       setErrorMessage(res.error || 'Authentication failed. Please verify your credentials.');
     }
