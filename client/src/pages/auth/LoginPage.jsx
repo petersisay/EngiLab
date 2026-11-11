@@ -44,15 +44,21 @@ const LoginPage = () => {
       };
       const defaultHome = roleHomeMap[userRole] || '/student';
 
-      // Check whether `from` is compatible with this user's role
-      const isPathAllowed = from && (
-        (userRole === 'SUPER_ADMIN') ||
-        (userRole === 'DEPARTMENT_ADMIN' && (from.startsWith('/department') || from.startsWith('/instructor'))) ||
-        (userRole === 'INSTRUCTOR' && from.startsWith('/instructor')) ||
-        (userRole === 'STUDENT' && from.startsWith('/student'))
-      );
+      // Resolve dashboard URL strictly matching user role
+      let targetPath = defaultHome;
+      if (from) {
+        if (userRole === 'SUPER_ADMIN' && from.startsWith('/admin')) {
+          targetPath = from;
+        } else if (userRole === 'DEPARTMENT_ADMIN' && from.startsWith('/department')) {
+          targetPath = from;
+        } else if (userRole === 'INSTRUCTOR' && from.startsWith('/instructor')) {
+          targetPath = from;
+        } else if (userRole === 'STUDENT' && from.startsWith('/student')) {
+          targetPath = from;
+        }
+      }
 
-      navigate(isPathAllowed ? from : defaultHome, { replace: true });
+      navigate(targetPath, { replace: true });
     } else {
       setErrorMessage(res.error || 'Authentication failed. Please verify your credentials.');
     }

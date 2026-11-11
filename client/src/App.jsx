@@ -19,7 +19,9 @@ function ScrollToTop() {
   const { pathname } = useLocation();
 
   useEffect(() => {
-    window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
+    try {
+      window.scrollTo(0, 0);
+    } catch (_) {}
   }, [pathname]);
 
   return null;
@@ -39,6 +41,14 @@ function App() {
 
             {/* Super Admin Protected Routes */}
             <Route
+              path="/admin"
+              element={
+                <ProtectedRoute allowedRoles={['SUPER_ADMIN']}>
+                  <AdminDashboard />
+                </ProtectedRoute>
+              }
+            />
+            <Route
               path="/admin/*"
               element={
                 <ProtectedRoute allowedRoles={['SUPER_ADMIN']}>
@@ -48,6 +58,14 @@ function App() {
             />
 
             {/* Department Admin Protected Routes */}
+            <Route
+              path="/department"
+              element={
+                <ProtectedRoute allowedRoles={['SUPER_ADMIN', 'DEPARTMENT_ADMIN']}>
+                  <DepartmentDashboard />
+                </ProtectedRoute>
+              }
+            />
             <Route
               path="/department/*"
               element={
@@ -59,6 +77,14 @@ function App() {
 
             {/* Instructor Protected Routes */}
             <Route
+              path="/instructor"
+              element={
+                <ProtectedRoute allowedRoles={['SUPER_ADMIN', 'DEPARTMENT_ADMIN', 'INSTRUCTOR']}>
+                  <InstructorDashboard />
+                </ProtectedRoute>
+              }
+            />
+            <Route
               path="/instructor/*"
               element={
                 <ProtectedRoute allowedRoles={['SUPER_ADMIN', 'DEPARTMENT_ADMIN', 'INSTRUCTOR']}>
@@ -68,6 +94,14 @@ function App() {
             />
 
             {/* Student Protected Routes */}
+            <Route
+              path="/student"
+              element={
+                <ProtectedRoute allowedRoles={['SUPER_ADMIN', 'STUDENT']}>
+                  <StudentDashboard />
+                </ProtectedRoute>
+              }
+            />
             <Route
               path="/student/*"
               element={

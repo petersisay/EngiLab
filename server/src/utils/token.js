@@ -60,13 +60,15 @@ const verifyRefreshToken = (token) => {
  * @param {string} [refreshToken] - Refresh token string
  */
 const sendTokenCookies = (res, accessToken, refreshToken) => {
-  const isProduction = env.isProduction;
+  const isProduction = env.isProduction || process.env.NODE_ENV === 'production' || Boolean(process.env.RENDER);
+  const secure = isProduction;
+  const sameSite = isProduction ? 'none' : 'lax';
 
-  // 15 minutes cookie for access token (sameSite: 'none' required for cross-domain Vercel <-> Render)
+  // 15 minutes cookie for access token (sameSite: 'none' and secure: true required for cross-domain Vercel <-> Render)
   res.cookie('engilab_access_token', accessToken, {
     httpOnly: true,
-    secure: isProduction,
-    sameSite: isProduction ? 'none' : 'lax',
+    secure,
+    sameSite,
     maxAge: 15 * 60 * 1000
   });
 
@@ -74,8 +76,8 @@ const sendTokenCookies = (res, accessToken, refreshToken) => {
   if (refreshToken) {
     res.cookie('engilab_refresh_token', refreshToken, {
       httpOnly: true,
-      secure: isProduction,
-      sameSite: isProduction ? 'none' : 'lax',
+      secure,
+      sameSite,
       maxAge: 7 * 24 * 60 * 60 * 1000
     });
   }
@@ -87,7 +89,7 @@ const sendTokenCookies = (res, accessToken, refreshToken) => {
  * @param {object} res - Express response object
  */
 const clearTokenCookies = (res) => {
-  const isProduction = env.isProduction;
+  const isProduction = env.isProduction || process.env.NODE_ENV === 'production' || Boolean(process.env.RENDER);
   const cookieOptions = {
     httpOnly: true,
     secure: isProduction,

@@ -28,18 +28,20 @@ const ProtectedRoute = ({ children, allowedRoles }) => {
   }
 
   if (allowedRoles && (!user?.role || !allowedRoles.includes(user.role))) {
-    // Redirect to user's authorized home dashboard
-    switch (user?.role) {
-      case 'SUPER_ADMIN':
-        return <Navigate to="/admin" replace />;
-      case 'DEPARTMENT_ADMIN':
-        return <Navigate to="/department" replace />;
-      case 'INSTRUCTOR':
-        return <Navigate to="/instructor" replace />;
-      case 'STUDENT':
-      default:
-        return <Navigate to="/student" replace />;
+    const roleHomeMap = {
+      SUPER_ADMIN: '/admin',
+      DEPARTMENT_ADMIN: '/department',
+      INSTRUCTOR: '/instructor',
+      STUDENT: '/student'
+    };
+    const roleHome = roleHomeMap[user?.role] || '/student';
+
+    // Prevent infinite redirect loop if already on or inside target dashboard
+    if (location.pathname === roleHome || location.pathname.startsWith(`${roleHome}/`)) {
+      return children;
     }
+
+    return <Navigate to={roleHome} replace />;
   }
 
   return children;

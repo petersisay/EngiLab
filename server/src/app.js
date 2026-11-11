@@ -22,8 +22,15 @@ const adminRoutes = require('./routes/admin.routes');
 
 const app = express();
 
-// Secure HTTP response headers
-app.use(helmet());
+// Trust reverse proxy (essential for Render / Vercel deployments to correctly detect HTTPS and cookies)
+app.set('trust proxy', 1);
+
+// Secure HTTP response headers allowing cross-origin requests
+app.use(
+  helmet({
+    crossOriginResourcePolicy: { policy: 'cross-origin' }
+  })
+);
 
 // Cross-Origin Resource Sharing configuration
 const allowedOrigins = [
