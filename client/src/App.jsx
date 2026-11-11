@@ -43,7 +43,7 @@ function App() {
             <Route
               path="/admin"
               element={
-                <ProtectedRoute allowedRoles={['SUPER_ADMIN']}>
+                <ProtectedRoute allowedRoles={['ADMIN', 'SUPER_ADMIN']}>
                   <AdminDashboard />
                 </ProtectedRoute>
               }
@@ -51,7 +51,7 @@ function App() {
             <Route
               path="/admin/*"
               element={
-                <ProtectedRoute allowedRoles={['SUPER_ADMIN']}>
+                <ProtectedRoute allowedRoles={['ADMIN', 'SUPER_ADMIN']}>
                   <AdminDashboard />
                 </ProtectedRoute>
               }
@@ -61,7 +61,7 @@ function App() {
             <Route
               path="/department"
               element={
-                <ProtectedRoute allowedRoles={['SUPER_ADMIN', 'DEPARTMENT_ADMIN']}>
+                <ProtectedRoute allowedRoles={['ADMIN', 'SUPER_ADMIN', 'DEPARTMENT_ADMIN']}>
                   <DepartmentDashboard />
                 </ProtectedRoute>
               }
@@ -69,7 +69,7 @@ function App() {
             <Route
               path="/department/*"
               element={
-                <ProtectedRoute allowedRoles={['SUPER_ADMIN', 'DEPARTMENT_ADMIN']}>
+                <ProtectedRoute allowedRoles={['ADMIN', 'SUPER_ADMIN', 'DEPARTMENT_ADMIN']}>
                   <DepartmentDashboard />
                 </ProtectedRoute>
               }
@@ -79,7 +79,7 @@ function App() {
             <Route
               path="/instructor"
               element={
-                <ProtectedRoute allowedRoles={['SUPER_ADMIN', 'DEPARTMENT_ADMIN', 'INSTRUCTOR']}>
+                <ProtectedRoute allowedRoles={['ADMIN', 'SUPER_ADMIN', 'DEPARTMENT_ADMIN', 'INSTRUCTOR']}>
                   <InstructorDashboard />
                 </ProtectedRoute>
               }
@@ -87,7 +87,7 @@ function App() {
             <Route
               path="/instructor/*"
               element={
-                <ProtectedRoute allowedRoles={['SUPER_ADMIN', 'DEPARTMENT_ADMIN', 'INSTRUCTOR']}>
+                <ProtectedRoute allowedRoles={['ADMIN', 'SUPER_ADMIN', 'DEPARTMENT_ADMIN', 'INSTRUCTOR']}>
                   <InstructorDashboard />
                 </ProtectedRoute>
               }
@@ -97,7 +97,7 @@ function App() {
             <Route
               path="/student"
               element={
-                <ProtectedRoute allowedRoles={['SUPER_ADMIN', 'STUDENT']}>
+                <ProtectedRoute allowedRoles={['STUDENT']}>
                   <StudentDashboard />
                 </ProtectedRoute>
               }
@@ -105,7 +105,7 @@ function App() {
             <Route
               path="/student/*"
               element={
-                <ProtectedRoute allowedRoles={['SUPER_ADMIN', 'STUDENT']}>
+                <ProtectedRoute allowedRoles={['STUDENT']}>
                   <StudentDashboard />
                 </ProtectedRoute>
               }

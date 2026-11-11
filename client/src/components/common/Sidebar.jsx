@@ -24,6 +24,7 @@ const Sidebar = () => {
 
   const getNavSections = () => {
     switch (role) {
+      case 'ADMIN':
       case 'SUPER_ADMIN':
         return [
           {

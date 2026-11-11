@@ -27,21 +27,25 @@ const ProtectedRoute = ({ children, allowedRoles }) => {
     return <Navigate to="/login" state={{ from: location }} replace />;
   }
 
-  if (allowedRoles && (!user?.role || !allowedRoles.includes(user.role))) {
-    const roleHomeMap = {
-      SUPER_ADMIN: '/admin',
-      DEPARTMENT_ADMIN: '/department',
-      INSTRUCTOR: '/instructor',
-      STUDENT: '/student'
-    };
-    const roleHome = roleHomeMap[user?.role] || '/student';
+  if (allowedRoles) {
+    const effectiveRole = user?.role === 'ADMIN' ? 'SUPER_ADMIN' : user?.role;
+    if (!user?.role || (!allowedRoles.includes(user.role) && !allowedRoles.includes(effectiveRole))) {
+      const roleHomeMap = {
+        ADMIN: '/admin',
+        SUPER_ADMIN: '/admin',
+        DEPARTMENT_ADMIN: '/department',
+        INSTRUCTOR: '/instructor',
+        STUDENT: '/student'
+      };
+      const roleHome = roleHomeMap[user?.role] || '/student';
 
-    // Prevent infinite redirect loop if already on or inside target dashboard
-    if (location.pathname === roleHome || location.pathname.startsWith(`${roleHome}/`)) {
-      return children;
+      // Prevent infinite redirect loop if already on or inside target dashboard
+      if (location.pathname === roleHome || location.pathname.startsWith(`${roleHome}/`)) {
+        return children;
+      }
+
+      return <Navigate to={roleHome} replace />;
     }
-
-    return <Navigate to={roleHome} replace />;
   }
 
   return children;

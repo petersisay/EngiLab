@@ -37,6 +37,7 @@ const LoginPage = () => {
     if (res.success) {
       const userRole = res.user?.role || 'STUDENT';
       const roleHomeMap = {
+        ADMIN: '/admin',
         SUPER_ADMIN: '/admin',
         DEPARTMENT_ADMIN: '/department',
         INSTRUCTOR: '/instructor',
@@ -47,7 +48,7 @@ const LoginPage = () => {
       // Resolve dashboard URL strictly matching user role
       let targetPath = defaultHome;
       if (from) {
-        if (userRole === 'SUPER_ADMIN' && from.startsWith('/admin')) {
+        if ((userRole === 'ADMIN' || userRole === 'SUPER_ADMIN') && from.startsWith('/admin')) {
           targetPath = from;
         } else if (userRole === 'DEPARTMENT_ADMIN' && from.startsWith('/department')) {
           targetPath = from;

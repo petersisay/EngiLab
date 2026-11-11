@@ -59,6 +59,7 @@ const Navbar = () => {
   const getDashboardLink = () => {
     if (!user) return '/';
     switch (user.role) {
+      case 'ADMIN':
       case 'SUPER_ADMIN':
         return '/admin';
       case 'DEPARTMENT_ADMIN':
@@ -73,6 +74,7 @@ const Navbar = () => {
 
   const getRoleBadge = (role) => {
     switch (role) {
+      case 'ADMIN':
       case 'SUPER_ADMIN':
         return 'bg-purple-900/60 text-purple-300 border-purple-700/50';
       case 'DEPARTMENT_ADMIN':

@@ -15,7 +15,9 @@ const authorizeRoles = (...allowedRoles) => {
       );
     }
 
-    if (!allowedRoles.includes(req.user.role)) {
+    const effectiveRole = req.user.role === 'ADMIN' ? 'SUPER_ADMIN' : req.user.role;
+
+    if (!allowedRoles.includes(req.user.role) && !allowedRoles.includes(effectiveRole)) {
       return next(
         new ApiError(
           403,

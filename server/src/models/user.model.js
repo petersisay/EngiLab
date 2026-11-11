@@ -25,8 +25,8 @@ const userSchema = new mongoose.Schema(
     role: {
       type: String,
       enum: {
-        values: ['SUPER_ADMIN', 'DEPARTMENT_ADMIN', 'INSTRUCTOR', 'STUDENT'],
-        message: 'Role must be SUPER_ADMIN, DEPARTMENT_ADMIN, INSTRUCTOR, or STUDENT'
+        values: ['ADMIN', 'SUPER_ADMIN', 'DEPARTMENT_ADMIN', 'INSTRUCTOR', 'STUDENT'],
+        message: 'Role must be ADMIN, SUPER_ADMIN, DEPARTMENT_ADMIN, INSTRUCTOR, or STUDENT'
       },
       default: 'STUDENT'
     },
