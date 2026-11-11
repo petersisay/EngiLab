@@ -53,14 +53,14 @@ const seedDatabase = async () => {
       departmentMap[d.code] = dept._id;
     }
 
-    // 2. Seed Super Admin
+    // 2. Seed Super Admin (Matching README.md Table Credentials)
     const superAdminEmail = 'admin@engilab.astu.edu.et';
     let superAdmin = await User.findOne({ email: superAdminEmail });
     if (!superAdmin) {
       superAdmin = await User.create({
         name: 'System Administrator',
         email: superAdminEmail,
-        password: 'Admin@EngiLab2025!',
+        password: 'Admin@EngiLab',
         role: 'SUPER_ADMIN',
         department: null,
         status: 'ACTIVE',
@@ -68,34 +68,25 @@ const seedDatabase = async () => {
       });
       console.log(`[Seed] Created Super Admin: ${superAdminEmail}`);
     } else {
-      console.log(`[Seed] Super Admin already exists: ${superAdminEmail}`);
+      superAdmin.password = 'Admin@EngiLab';
+      superAdmin.role = 'SUPER_ADMIN';
+      superAdmin.status = 'ACTIVE';
+      superAdmin.isEmailVerified = true;
+      await superAdmin.save();
+      console.log(`[Seed] Synchronized Super Admin password: ${superAdminEmail}`);
     }
 
-    // 3. Seed Department Admins, Instructors, and Students
-    const sampleUsers = [
-      {
-        name: 'Dr. Solomon Belay',
-        email: 'solomon.belay@astu.edu.et',
-        password: 'Admin@EngiLab2025!',
-        role: 'DEPARTMENT_ADMIN',
-        department: departmentMap['ECE'],
-        status: 'ACTIVE'
-      },
-      {
-        name: 'Dr. Meron Abebe',
-        email: 'meron.abebe@astu.edu.et',
-        password: 'Admin@EngiLab2025!',
-        role: 'DEPARTMENT_ADMIN',
-        department: departmentMap['EPCE'],
-        status: 'ACTIVE'
-      },
+    // 3. Seed Default Instructors from README.md Table
+    // Students are NOT pre-seeded; students register individually via /register
+    const tableInstructors = [
       {
         name: 'Dawit Kebede',
         email: 'dawit.kebede@astu.edu.et',
         password: 'Instructor@2025!',
         role: 'INSTRUCTOR',
         department: departmentMap['ECE'],
-        status: 'ACTIVE'
+        status: 'ACTIVE',
+        isEmailVerified: true
       },
       {
         name: 'Alemayehu Tadesse',
@@ -103,38 +94,27 @@ const seedDatabase = async () => {
         password: 'Instructor@2025!',
         role: 'INSTRUCTOR',
         department: departmentMap['EPCE'],
-        status: 'ACTIVE'
-      },
-      {
-        name: 'Kidus Yohannes',
-        email: 'kidus.yohannes@astu.edu.et',
-        password: 'Student@2025!',
-        role: 'STUDENT',
-        studentId: 'ETS0450/14',
-        department: departmentMap['ECE'],
-        status: 'ACTIVE'
-      },
-      {
-        name: 'Bethlehem Haile',
-        email: 'bethlehem.haile@astu.edu.et',
-        password: 'Student@2025!',
-        role: 'STUDENT',
-        studentId: 'ETS0482/14',
-        department: departmentMap['EPCE'],
-        status: 'ACTIVE'
+        status: 'ACTIVE',
+        isEmailVerified: true
       }
     ];
 
     const instructorMap = {};
-    for (const u of sampleUsers) {
+    for (const u of tableInstructors) {
       let user = await User.findOne({ email: u.email });
       if (!user) {
         user = await User.create(u);
         console.log(`[Seed] Created ${user.role}: ${user.email}`);
+      } else {
+        user.password = u.password;
+        user.role = u.role;
+        user.department = u.department;
+        user.status = 'ACTIVE';
+        user.isEmailVerified = true;
+        await user.save();
+        console.log(`[Seed] Synchronized ${user.role}: ${user.email}`);
       }
-      if (u.role === 'INSTRUCTOR') {
-        instructorMap[u.email] = user._id;
-      }
+      instructorMap[u.email] = user._id;
     }
 
     // 4. Seed Academic Year & Semester
