@@ -1,11 +1,14 @@
 import axios from 'axios';
 
+const rawApiUrl = import.meta.env.VITE_API_URL || '/api/v1';
+const normalizedApiUrl = rawApiUrl.endsWith('/') ? rawApiUrl.slice(0, -1) : rawApiUrl;
+
 /**
  * Standardized Axios HTTP client instance for EngiLab frontend.
  * Preconfigured with credentials support for HTTP-only JWT cookies.
  */
 const api = axios.create({
-  baseURL: import.meta.env.VITE_API_URL || '/api/v1',
+  baseURL: normalizedApiUrl,
   withCredentials: true,
   headers: {
     'Content-Type': 'application/json'

@@ -62,11 +62,11 @@ const verifyRefreshToken = (token) => {
 const sendTokenCookies = (res, accessToken, refreshToken) => {
   const isProduction = env.isProduction;
 
-  // 15 minutes cookie for access token
+  // 15 minutes cookie for access token (sameSite: 'none' required for cross-domain Vercel <-> Render)
   res.cookie('engilab_access_token', accessToken, {
     httpOnly: true,
     secure: isProduction,
-    sameSite: isProduction ? 'strict' : 'lax',
+    sameSite: isProduction ? 'none' : 'lax',
     maxAge: 15 * 60 * 1000
   });
 
@@ -75,7 +75,7 @@ const sendTokenCookies = (res, accessToken, refreshToken) => {
     res.cookie('engilab_refresh_token', refreshToken, {
       httpOnly: true,
       secure: isProduction,
-      sameSite: isProduction ? 'strict' : 'lax',
+      sameSite: isProduction ? 'none' : 'lax',
       maxAge: 7 * 24 * 60 * 60 * 1000
     });
   }
@@ -91,7 +91,7 @@ const clearTokenCookies = (res) => {
   const cookieOptions = {
     httpOnly: true,
     secure: isProduction,
-    sameSite: isProduction ? 'strict' : 'lax'
+    sameSite: isProduction ? 'none' : 'lax'
   };
 
   res.clearCookie('engilab_access_token', cookieOptions);

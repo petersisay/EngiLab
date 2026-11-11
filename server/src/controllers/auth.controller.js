@@ -89,7 +89,7 @@ const registerStudent = async (req, res, next) => {
     return sendSuccess(res, {
       statusCode: 201,
       message: 'Student account registered successfully.',
-      data: { user: populatedUser }
+      data: { user: populatedUser, accessToken, token: accessToken }
     });
   } catch (error) {
     return next(error);
@@ -164,7 +164,7 @@ const login = async (req, res, next) => {
     return sendSuccess(res, {
       statusCode: 200,
       message: 'Authentication successful. Welcome to EngiLab.',
-      data: { user: userObj }
+      data: { user: userObj, accessToken, token: accessToken }
     });
   } catch (error) {
     return next(error);

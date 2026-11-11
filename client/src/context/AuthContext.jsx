@@ -36,6 +36,10 @@ export const AuthProvider = ({ children }) => {
     try {
       const response = await api.post('/auth/login', { email, password });
       const authenticatedUser = response?.data?.user;
+      const token = response?.data?.accessToken || response?.data?.token;
+      if (token) {
+        api.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+      }
       setUser(authenticatedUser);
       return { success: true, user: authenticatedUser };
     } catch (err) {
@@ -55,6 +59,10 @@ export const AuthProvider = ({ children }) => {
     try {
       const response = await api.post('/auth/register', studentData);
       const newUser = response?.data?.user;
+      const token = response?.data?.accessToken || response?.data?.token;
+      if (token) {
+        api.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+      }
       setUser(newUser);
       return { success: true, user: newUser };
     } catch (err) {
@@ -74,6 +82,7 @@ export const AuthProvider = ({ children }) => {
     } catch (err) {
       console.warn('Logout API error:', err);
     } finally {
+      delete api.defaults.headers.common['Authorization'];
       setUser(null);
     }
   };

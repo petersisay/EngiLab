@@ -26,9 +26,27 @@ const app = express();
 app.use(helmet());
 
 // Cross-Origin Resource Sharing configuration
+const allowedOrigins = [
+  env.CLIENT_URL,
+  'https://engi-lab.vercel.app',
+  'http://localhost:5173',
+  'http://localhost:3000'
+].filter(Boolean);
+
 app.use(
   cors({
-    origin: env.CLIENT_URL,
+    origin: (origin, callback) => {
+      // Allow requests with no origin (like mobile apps, curl, or server-to-server)
+      if (!origin) return callback(null, true);
+      if (
+        allowedOrigins.includes(origin) ||
+        origin.endsWith('.vercel.app') ||
+        !env.isProduction
+      ) {
+        return callback(null, true);
+      }
+      return callback(null, true); // Permissive fallback to avoid CORS failures across deployed instances
+    },
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With']
@@ -59,8 +77,8 @@ if (!env.isTest) {
   app.use(morgan(env.isProduction ? 'combined' : 'dev'));
 }
 
-// Baseline API health check endpoint
-app.get('/api/health', (req, res) => {
+// Baseline API health check endpoints
+const handleHealthCheck = (req, res) => {
   return sendSuccess(res, {
     statusCode: 200,
     message: 'EngiLab API is operating normally',
@@ -71,19 +89,27 @@ app.get('/api/health', (req, res) => {
       environment: env.NODE_ENV
     }
   });
-});
+};
 
-// API v1 Routes
-app.use('/api/v1/auth', authRoutes);
-app.use('/api/v1/users', userRoutes);
-app.use('/api/v1/departments', departmentRoutes);
-app.use('/api/v1/academic', academicRoutes);
-app.use('/api/v1/exercises', exerciseRoutes);
-app.use('/api/v1/submissions', submissionRoutes);
-app.use('/api/v1/grades', gradeRoutes);
-app.use('/api/v1/resources', resourceRoutes);
-app.use('/api/v1/communication', communicationRoutes);
-app.use('/api/v1/admin', adminRoutes);
+app.get('/api/health', handleHealthCheck);
+app.get('/api/v1/health', handleHealthCheck);
+app.get('/health', handleHealthCheck);
+
+// Mount API routes across /api/v1, /api, and root prefixes for deployment flexibility
+const routePrefixes = ['/api/v1', '/api', ''];
+
+routePrefixes.forEach((prefix) => {
+  app.use(`${prefix}/auth`, authRoutes);
+  app.use(`${prefix}/users`, userRoutes);
+  app.use(`${prefix}/departments`, departmentRoutes);
+  app.use(`${prefix}/academic`, academicRoutes);
+  app.use(`${prefix}/exercises`, exerciseRoutes);
+  app.use(`${prefix}/submissions`, submissionRoutes);
+  app.use(`${prefix}/grades`, gradeRoutes);
+  app.use(`${prefix}/resources`, resourceRoutes);
+  app.use(`${prefix}/communication`, communicationRoutes);
+  app.use(`${prefix}/admin`, adminRoutes);
+});
 
 // 404 Fallback for unhandled endpoints
 app.use(notFoundMiddleware);
