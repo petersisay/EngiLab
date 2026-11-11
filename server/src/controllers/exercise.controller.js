@@ -16,9 +16,29 @@ const getExercises = async (req, res, next) => {
     if (courseId) query.course = courseId;
     if (weekNumber) query.weekNumber = parseInt(weekNumber, 10);
 
-    // Students only see published exercises
+    const userDeptId = req.user?.department?._id || req.user?.department;
+
+    // Students only see published exercises belonging to their department
     if (req.user.role === 'STUDENT') {
       query.isPublished = true;
+      if (userDeptId && !courseId) {
+        const deptCourses = await Course.find({ department: userDeptId }).select('_id');
+        query.course = { $in: deptCourses.map((c) => c._id) };
+      }
+    } else if (req.user.role === 'INSTRUCTOR') {
+      if (isPublished !== undefined) query.isPublished = isPublished === 'true';
+      if (userDeptId && !courseId) {
+        const instructorCourses = await Course.find({
+          $or: [{ department: userDeptId }, { instructors: req.user._id }]
+        }).select('_id');
+        query.course = { $in: instructorCourses.map((c) => c._id) };
+      }
+    } else if (req.user.role === 'DEPARTMENT_ADMIN') {
+      if (isPublished !== undefined) query.isPublished = isPublished === 'true';
+      if (userDeptId && !courseId) {
+        const deptCourses = await Course.find({ department: userDeptId }).select('_id');
+        query.course = { $in: deptCourses.map((c) => c._id) };
+      }
     } else if (isPublished !== undefined) {
       query.isPublished = isPublished === 'true';
     }

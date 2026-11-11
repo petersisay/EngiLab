@@ -309,34 +309,95 @@ const InstructorDashboard = () => {
     }
   };
 
-  const pendingCount = submissions.filter((s) => s.status === 'SUBMITTED').length;
-  const gradedCount = submissions.filter((s) => s.status === 'GRADED').length;
+  // Department identification (ECE vs EPCE)
+  const userDept = user?.department;
+  const deptCode = (userDept?.code || '').toUpperCase();
+  const deptName = userDept?.name || '';
+  const isECE = deptCode === 'ECE' || deptName.toLowerCase().includes('electronics') || user?.email?.includes('dawit');
+  const isEPCE = deptCode === 'EPCE' || deptName.toLowerCase().includes('power') || user?.email?.includes('alemayehu');
+
+  const departmentBadge = isECE
+    ? 'Electronics & Communication Engineering (ECE)'
+    : isEPCE
+    ? 'Electrical Power & Control Engineering (EPCE)'
+    : userDept?.name || 'ASTU Engineering';
+
+  // Client-side departmental scoping for complete data separation
+  const displayCourses = courses.filter((c) => {
+    const cCode = (c.code || '').toUpperCase();
+    if (isECE && cCode.startsWith('EPCE')) return false;
+    if (isEPCE && cCode.startsWith('ECE')) return false;
+    return true;
+  });
+
+  const displayExercises = exercises.filter((ex) => {
+    const cCode = (ex.course?.code || '').toUpperCase();
+    if (isECE && cCode.startsWith('EPCE')) return false;
+    if (isEPCE && cCode.startsWith('ECE')) return false;
+    return true;
+  });
+
+  const displaySubmissions = submissions.filter((s) => {
+    const cCode = (s.course?.code || s.exercise?.course?.code || '').toUpperCase();
+    if (isECE && cCode.startsWith('EPCE')) return false;
+    if (isEPCE && cCode.startsWith('ECE')) return false;
+    return true;
+  });
+
+  const displayResources = resources.filter((res) => {
+    if (isECE && res.courseCode === 'EPCE3201') return false;
+    if (isEPCE && res.courseCode === 'ECE3101') return false;
+    return true;
+  });
+
+  const pendingCount = displaySubmissions.filter((s) => s.status === 'SUBMITTED').length;
+  const gradedCount = displaySubmissions.filter((s) => s.status === 'GRADED').length;
 
   const instructorName = user
     ? user.name || `${user.firstName || ''} ${user.lastName || ''}`.trim() || 'Instructor'
     : 'Instructor';
 
-  // Title and subtitle dynamic per view
+  // Title and subtitle dynamic per view and department
   const viewTitles = {
     overview: {
-      title: 'Instructor Teaching Studio',
-      subtitle: `Welcome, ${instructorName} · Course Laboratory Evaluations & Academic Delivery`
+      title: isECE
+        ? 'ECE Faculty Laboratory Studio'
+        : isEPCE
+        ? 'EPCE Faculty Laboratory Studio'
+        : 'Instructor Teaching Studio',
+      subtitle: `Welcome, ${instructorName} · ${departmentBadge} Faculty`
     },
     courses: {
-      title: 'My Laboratory Teaching Courses',
-      subtitle: 'Assigned engineering laboratory curricula, enrolled cohorts, and syllabus configuration'
+      title: isECE
+        ? 'ECE Laboratory Course Management'
+        : isEPCE
+        ? 'EPCE Laboratory Course Management'
+        : 'My Laboratory Teaching Courses',
+      subtitle: `Assigned ${isECE ? 'ECE' : isEPCE ? 'EPCE' : 'engineering'} laboratory curricula, enrolled student cohorts, and syllabus configuration`
     },
     exercises: {
-      title: 'Laboratory Exercise Designer',
-      subtitle: 'Create, author, and publish multi-week laboratory procedures, safety protocols, and rubrics'
+      title: isECE
+        ? 'ECE Laboratory Exercise Designer'
+        : isEPCE
+        ? 'EPCE Laboratory Exercise Designer'
+        : 'Laboratory Exercise Designer',
+      subtitle: `Author and publish multi-week ${isECE ? 'ECE' : isEPCE ? 'EPCE' : 'laboratory'} experiment procedures, safety protocols, and rubrics`
     },
     grading: {
-      title: 'Grading Studio & Evaluation Queue',
-      subtitle: 'Evaluate student laboratory reports, run rubric scoring, and provide actionable feedback'
+      title: isECE
+        ? 'ECE Lab Report Evaluation Queue'
+        : isEPCE
+        ? 'EPCE Lab Report Evaluation Queue'
+        : 'Grading Studio & Evaluation Queue',
+      subtitle: `Evaluate ${isECE ? 'ECE' : isEPCE ? 'EPCE' : 'student'} laboratory reports, inspect uploaded documents, run rubric scoring, and provide feedback`
     },
     resources: {
-      title: 'Course Resources & Lab Manual Repository',
-      subtitle: 'Laboratory handouts, simulation guidelines, software templates, and hardware datasheets'
+      title: isECE
+        ? 'ECE Course Teaching Repository'
+        : isEPCE
+        ? 'EPCE Course Teaching Repository'
+        : 'Course Resources & Lab Manual Repository',
+      subtitle: `Official ${isECE ? 'ECE' : isEPCE ? 'EPCE' : 'ASTU'} laboratory handouts, simulation guidelines, software templates, and hardware datasheets`
     }
   };
 
@@ -387,6 +448,35 @@ const InstructorDashboard = () => {
           ========================================================================= */}
       {activeView === 'overview' && (
         <>
+          {/* Department Faculty Banner */}
+          <div className="mb-6 p-4 rounded-xl bg-slate-900/80 border border-slate-800 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 shadow-lg">
+            <div className="flex items-center space-x-3">
+              <div className={`w-9 h-9 rounded-lg flex items-center justify-center font-bold text-sm ${
+                isECE
+                  ? 'bg-cyan-500/15 text-cyan-400 border border-cyan-500/30'
+                  : isEPCE
+                  ? 'bg-amber-500/15 text-amber-400 border border-amber-500/30'
+                  : 'bg-blue-500/15 text-blue-400 border border-blue-500/30'
+              }`}>
+                {isECE ? 'ECE' : isEPCE ? 'EPCE' : 'ASTU'}
+              </div>
+              <div>
+                <h4 className="text-sm font-bold text-white flex items-center space-x-2">
+                  <span>{isECE ? 'ECE Department Instruction & Lab Node' : isEPCE ? 'EPCE Department Instruction & Lab Node' : 'Departmental Instruction Node'}</span>
+                  <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-slate-800 text-slate-300 border border-slate-700">
+                    Faculty Instructor
+                  </span>
+                </h4>
+                <p className="text-xs text-slate-400 mt-0.5">
+                  Assigned courses, lab cohorts, exercise authoring, and evaluation queues for {departmentBadge}.
+                </p>
+              </div>
+            </div>
+            <span className="text-xs font-mono text-slate-400">
+              Department: <span className="text-cyan-400 font-semibold">{isECE ? 'ECE' : isEPCE ? 'EPCE' : 'Engineering'}</span>
+            </span>
+          </div>
+
           {/* Metric Counters */}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
             <Link
@@ -397,7 +487,7 @@ const InstructorDashboard = () => {
                 Teaching Courses
               </span>
               <div className="mt-2 flex items-baseline justify-between">
-                <span className="text-2xl font-extrabold text-white">{courses.length}</span>
+                <span className="text-2xl font-extrabold text-white">{displayCourses.length}</span>
                 <BookOpen className="w-5 h-5 text-cyan-400" />
               </div>
               <p className="mt-2 text-xs text-slate-400 flex items-center">
@@ -414,7 +504,7 @@ const InstructorDashboard = () => {
                 Published Exercises
               </span>
               <div className="mt-2 flex items-baseline justify-between">
-                <span className="text-2xl font-extrabold text-white">{exercises.length}</span>
+                <span className="text-2xl font-extrabold text-white">{displayExercises.length}</span>
                 <FlaskConical className="w-5 h-5 text-blue-400" />
               </div>
               <p className="mt-2 text-xs text-slate-400 flex items-center">
@@ -464,7 +554,7 @@ const InstructorDashboard = () => {
               <div className="flex items-center justify-between">
                 <h3 className="text-base font-bold text-white flex items-center space-x-2">
                   <Clock className="w-4 h-4 text-cyan-400" />
-                  <span>Student Lab Submission Queue ({submissions.length})</span>
+                  <span>Student Lab Submission Queue ({displaySubmissions.length})</span>
                 </h3>
                 <Link
                   to="/instructor/grading"
@@ -474,11 +564,11 @@ const InstructorDashboard = () => {
                 </Link>
               </div>
 
-              {submissions.length === 0 ? (
+              {displaySubmissions.length === 0 ? (
                 <div className="p-12 text-center rounded-xl bg-slate-800/40 border border-slate-700/50">
                   <FileText className="w-10 h-10 text-slate-600 mx-auto mb-3" />
                   <p className="text-sm font-medium text-slate-400">
-                    No student laboratory submissions recorded yet.
+                    No student laboratory submissions recorded yet for {departmentBadge}.
                   </p>
                   <p className="text-xs text-slate-500 mt-1">
                     Student reports will appear here when submitted for your active lab exercises.
@@ -486,7 +576,7 @@ const InstructorDashboard = () => {
                 </div>
               ) : (
                 <div className="space-y-3">
-                  {submissions.slice(0, 5).map((sub) => (
+                  {displaySubmissions.slice(0, 5).map((sub) => (
                     <div
                       key={sub._id}
                       className="p-4 rounded-xl bg-slate-800/60 border border-slate-700/60 flex items-center justify-between hover:border-slate-600 transition-colors"
@@ -563,10 +653,10 @@ const InstructorDashboard = () => {
                 </Link>
               </div>
 
-              {exercises.length === 0 ? (
+              {displayExercises.length === 0 ? (
                 <div className="p-8 text-center rounded-xl bg-slate-800/40 border border-slate-700/50">
                   <FlaskConical className="w-8 h-8 text-slate-600 mx-auto mb-2" />
-                  <p className="text-xs text-slate-400">No laboratory exercises authored yet.</p>
+                  <p className="text-xs text-slate-400">No laboratory exercises authored yet for {departmentBadge}.</p>
                   <button
                     onClick={() => {
                       setExerciseSuccess('');
@@ -579,7 +669,7 @@ const InstructorDashboard = () => {
                 </div>
               ) : (
                 <div className="space-y-3">
-                  {exercises.slice(0, 4).map((ex) => (
+                  {displayExercises.slice(0, 4).map((ex) => (
                     <div
                       key={ex._id}
                       className="p-4 rounded-xl bg-slate-800/60 border border-slate-700/60 space-y-2 hover:border-slate-600 transition-colors"
@@ -616,7 +706,7 @@ const InstructorDashboard = () => {
                 <span>Teaching Curriculum Allocation</span>
               </h3>
               <p className="text-xs text-slate-400 mt-1">
-                You are registered as a laboratory course instructor or coordinator for {courses.length} accredited ASTU engineering course(s).
+                You are registered as a laboratory course instructor or coordinator for {displayCourses.length} accredited ASTU engineering course(s) in {departmentBadge}.
               </p>
             </div>
             <div className="flex items-center space-x-2">
@@ -627,7 +717,7 @@ const InstructorDashboard = () => {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {courses.map((c) => (
+            {displayCourses.map((c) => (
               <div
                 key={c._id}
                 className="p-6 rounded-2xl bg-slate-800/60 border border-slate-700/70 hover:border-slate-600 transition-all shadow-lg flex flex-col justify-between"
@@ -750,7 +840,7 @@ const InstructorDashboard = () => {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
-            {exercises.map((ex) => (
+            {displayExercises.map((ex) => (
               <div
                 key={ex._id}
                 className="p-5 rounded-xl bg-slate-800/60 border border-slate-700/60 hover:border-slate-600 transition-all flex flex-col justify-between"
@@ -860,12 +950,12 @@ const InstructorDashboard = () => {
           </div>
 
           {/* Submissions Table / Cards */}
-          {submissions.length === 0 ? (
+          {displaySubmissions.length === 0 ? (
             <div className="p-16 text-center rounded-2xl bg-slate-800/30 border border-slate-700/50">
               <FileText className="w-12 h-12 text-slate-600 mx-auto mb-3" />
               <h4 className="text-sm font-bold text-slate-300">No Laboratory Submissions Found</h4>
               <p className="text-xs text-slate-500 mt-1">
-                When students complete and submit their laboratory reports, they will be listed here for formal instructor grading.
+                When students complete and submit their laboratory reports for {departmentBadge}, they will be listed here for formal instructor grading.
               </p>
             </div>
           ) : (
@@ -882,7 +972,7 @@ const InstructorDashboard = () => {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-700/40 text-slate-300">
-                  {submissions
+                  {displaySubmissions
                     .filter((s) => {
                       if (statusFilter !== 'ALL' && s.status !== statusFilter) return false;
                       if (!searchQuery) return true;
@@ -935,7 +1025,20 @@ const InstructorDashboard = () => {
                           )}
                         </td>
 
-                        <td className="py-3.5 px-4 text-right">
+                        <td className="py-3.5 px-4 text-right space-x-2">
+                          {(sub.reportFile?.fileUrl || sub.fileUrl) && (
+                            <a
+                              href={sub.reportFile?.fileUrl || sub.fileUrl}
+                              download={sub.reportFile?.fileName || sub.fileName || 'Report.pdf'}
+                              target="_blank"
+                              rel="noreferrer"
+                              className="inline-flex items-center space-x-1 px-2.5 py-1.5 rounded-lg text-xs font-semibold bg-slate-700/80 hover:bg-slate-700 text-cyan-300 transition-colors"
+                              title="Download Report File"
+                            >
+                              <Download className="w-3 h-3" />
+                              <span>Report</span>
+                            </a>
+                          )}
                           <button
                             onClick={() => openGradingModal(sub)}
                             className="px-3 py-1.5 rounded-lg text-xs font-semibold bg-blue-600 hover:bg-blue-500 text-white transition-colors"
@@ -1046,6 +1149,51 @@ const InstructorDashboard = () => {
             )}
 
             <form onSubmit={handleGradeSubmit} className="space-y-4">
+              {/* Submitted Student File Card */}
+              <div className="p-3.5 rounded-xl bg-slate-800/80 border border-slate-700/80 flex items-center justify-between">
+                <div className="flex items-center space-x-2.5">
+                  <div className="w-9 h-9 rounded-lg bg-cyan-500/15 border border-cyan-500/30 flex items-center justify-center text-cyan-400">
+                    <FileText className="w-4 h-4" />
+                  </div>
+                  <div>
+                    <span className="text-xs font-bold text-white block">
+                      {selectedSubmission.reportFile?.fileName || selectedSubmission.fileName || 'Student_Laboratory_Report.pdf'}
+                    </span>
+                    <span className="text-[11px] text-slate-400 block mt-0.5">
+                      Author: {selectedSubmission.student?.name || `${selectedSubmission.student?.firstName || ''} ${selectedSubmission.student?.lastName || ''}`.trim() || 'Student'} ({selectedSubmission.student?.studentId || 'ASTU'})
+                    </span>
+                  </div>
+                </div>
+
+                {(selectedSubmission.reportFile?.fileUrl || selectedSubmission.fileUrl) && (
+                  <a
+                    href={selectedSubmission.reportFile?.fileUrl || selectedSubmission.fileUrl}
+                    download={selectedSubmission.reportFile?.fileName || selectedSubmission.fileName || 'Report.pdf'}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="px-3 py-1.5 rounded-lg text-xs font-semibold bg-gradient-to-r from-blue-600 to-cyan-500 hover:from-blue-500 hover:to-cyan-400 text-white flex items-center space-x-1.5 transition-all shadow-sm"
+                  >
+                    <Download className="w-3.5 h-3.5" />
+                    <span>Download Report</span>
+                  </a>
+                )}
+              </div>
+
+              {selectedSubmission.repositoryUrl && (
+                <div className="p-2.5 rounded-lg bg-slate-800/50 border border-slate-700/60 flex items-center justify-between text-xs">
+                  <span className="text-slate-400">Simulation Code:</span>
+                  <a
+                    href={selectedSubmission.repositoryUrl}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="text-cyan-400 hover:underline flex items-center space-x-1 font-mono text-[11px]"
+                  >
+                    <span>{selectedSubmission.repositoryUrl}</span>
+                    <ExternalLink className="w-3 h-3" />
+                  </a>
+                </div>
+              )}
+
               <div>
                 <label className="block text-xs font-semibold text-slate-300 mb-1">
                   Awarded Score (0 - 100) *
@@ -1179,7 +1327,7 @@ const InstructorDashboard = () => {
                     onChange={(e) => setExerciseForm({ ...exerciseForm, course: e.target.value })}
                     className="w-full px-3 py-2 rounded-lg bg-slate-800 border border-slate-700 text-white text-xs focus:outline-none focus:border-cyan-500"
                   >
-                    {courses.map((c) => (
+                    {displayCourses.map((c) => (
                       <option key={c._id} value={c._id}>
                         {c.code} - {c.title}
                       </option>

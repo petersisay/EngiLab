@@ -105,9 +105,12 @@ const Sidebar = () => {
             </div>
           </div>
           {user.department && (
-            <p className="mt-2 text-[11px] text-slate-400 truncate">
-              {user.department.name || user.department.code || 'Assigned Department'}
-            </p>
+            <div className="mt-2.5 pt-2 border-t border-slate-700/50 flex items-center space-x-1.5">
+              <span className="w-1.5 h-1.5 rounded-full bg-cyan-400 shrink-0"></span>
+              <p className="text-[11px] text-slate-300 font-semibold truncate">
+                {user.department.code ? `${user.department.code} Department` : user.department.name}
+              </p>
+            </div>
           )}
         </div>
 

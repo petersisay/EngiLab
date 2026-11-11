@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useLocation, Link } from 'react-router-dom';
 import DashboardLayout from '../../components/common/DashboardLayout';
 import { useAuth } from '../../context/AuthContext';
@@ -27,7 +27,10 @@ import {
   Layers,
   GraduationCap,
   Sparkles,
-  User
+  User,
+  Paperclip,
+  Trash2,
+  FileUp
 } from 'lucide-react';
 
 const StudentDashboard = () => {
@@ -51,18 +54,37 @@ const StudentDashboard = () => {
   const [submissions, setSubmissions] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  // Submission Modal State
+  // Submission Modal State & File Upload
   const [submitModalOpen, setSubmitModalOpen] = useState(false);
   const [selectedExercise, setSelectedExercise] = useState(null);
+  const [selectedFile, setSelectedFile] = useState(null);
+  const [fileUploadError, setFileUploadError] = useState('');
+  const [useManualUrl, setUseManualUrl] = useState(false);
+  const fileInputRef = useRef(null);
+
   const [submissionForm, setSubmissionForm] = useState({
     reportFileUrl: '',
     fileName: 'Lab_Report.pdf',
+    fileSize: 0,
     repositoryUrl: '',
     notes: '',
     submissionType: 'INDIVIDUAL'
   });
   const [submittingReport, setSubmittingReport] = useState(false);
   const [submitSuccess, setSubmitSuccess] = useState('');
+
+  // Department identification (ECE vs EPCE)
+  const userDept = user?.department;
+  const deptCode = (userDept?.code || '').toUpperCase();
+  const deptName = userDept?.name || '';
+  const isECE = deptCode === 'ECE' || deptName.toLowerCase().includes('electronics');
+  const isEPCE = deptCode === 'EPCE' || deptName.toLowerCase().includes('power');
+
+  const departmentBadge = isECE
+    ? 'Electronics & Communication (ECE)'
+    : isEPCE
+    ? 'Electrical Power & Control (EPCE)'
+    : userDept?.name || 'ASTU Engineering';
 
   // Resources state
   const [resourceFilter, setResourceFilter] = useState('ALL');
@@ -147,11 +169,38 @@ const StudentDashboard = () => {
     fetchStudentData();
   }, []);
 
+  // Department-specific safety filters (client side)
+  const displayCourses = courses.filter((enrollment) => {
+    const c = enrollment.course || enrollment;
+    const cCode = (c.code || '').toUpperCase();
+    if (isECE && cCode.startsWith('EPCE')) return false;
+    if (isEPCE && cCode.startsWith('ECE')) return false;
+    return true;
+  });
+
+  const displayExercises = exercises.filter((ex) => {
+    const cCode = (ex.course?.code || '').toUpperCase();
+    if (isECE && cCode.startsWith('EPCE')) return false;
+    if (isEPCE && cCode.startsWith('ECE')) return false;
+    return true;
+  });
+
+  const displayResources = resourcesList.filter((res) => {
+    if (isECE && res.courseCode === 'EPCE3201') return false;
+    if (isEPCE && res.courseCode === 'ECE3101') return false;
+    if (resourceFilter !== 'ALL' && res.category !== resourceFilter) return false;
+    return true;
+  });
+
   const openSubmitModal = (exercise) => {
     setSelectedExercise(exercise);
+    setSelectedFile(null);
+    setFileUploadError('');
+    setUseManualUrl(false);
     setSubmissionForm({
       reportFileUrl: '',
       fileName: `${exercise.exerciseNumber || 'Lab'}_Report.pdf`,
+      fileSize: 0,
       repositoryUrl: '',
       notes: '',
       submissionType: exercise.submissionType === 'GROUP' ? 'GROUP' : 'INDIVIDUAL'
@@ -160,12 +209,44 @@ const StudentDashboard = () => {
     setSubmitModalOpen(true);
   };
 
+  const handleFileChange = (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (file.size > 50 * 1024 * 1024) {
+      setFileUploadError('File size exceeds 50MB. Please upload a smaller document.');
+      return;
+    }
+
+    setFileUploadError('');
+    setSelectedFile(file);
+
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      setSubmissionForm((prev) => ({
+        ...prev,
+        reportFileUrl: event.target.result,
+        fileName: file.name,
+        fileSize: file.size,
+        fileType: file.type || 'application/pdf'
+      }));
+    };
+    reader.onerror = () => {
+      setFileUploadError('Failed to read the selected file. Please try again.');
+    };
+    reader.readAsDataURL(file);
+  };
+
   const handleReportSubmit = async (e) => {
     e.preventDefault();
-    if (!selectedExercise || !submissionForm.reportFileUrl) return;
+    if (!selectedExercise || !submissionForm.reportFileUrl) {
+      setFileUploadError('Please select or upload a laboratory report file.');
+      return;
+    }
 
     setSubmittingReport(true);
     setSubmitSuccess('');
+    setFileUploadError('');
 
     try {
       await api.post('/submissions', {
@@ -174,52 +255,67 @@ const StudentDashboard = () => {
         reportFile: {
           fileUrl: submissionForm.reportFileUrl.trim(),
           fileName: submissionForm.fileName.trim(),
-          fileType: 'application/pdf',
-          fileSizeBytes: 204800
+          fileType: submissionForm.fileType || 'application/pdf',
+          fileSizeBytes: submissionForm.fileSize || 204800
         },
         repositoryUrl: submissionForm.repositoryUrl.trim(),
         notes: submissionForm.notes.trim()
       });
 
-      setSubmitSuccess('Laboratory report submitted successfully to course instructor!');
+      setSubmitSuccess('Laboratory report uploaded and submitted successfully!');
       setTimeout(() => {
         setSubmitModalOpen(false);
         fetchStudentData();
       }, 1500);
     } catch (err) {
-      alert(err.message || 'Submission failed. Please verify required fields.');
+      setFileUploadError(err.message || 'Submission failed. Please verify required fields.');
     } finally {
       setSubmittingReport(false);
     }
   };
 
-  // View Title and Subtitle
+  // View Title and Subtitle customized for ECE vs EPCE student
   const studentName = user
     ? user.name || `${user.firstName || ''} ${user.lastName || ''}`.trim() || 'Student'
     : 'Student';
-  const studentDept = user?.department?.code || user?.department?.name || 'ASTU Engineering';
   const studentId = user?.studentId || 'ASTU Student';
 
   const viewMeta = {
     overview: {
-      title: 'Student Laboratory Workspace',
-      subtitle: `Welcome, ${studentName} (${studentId}) · ${studentDept}`
+      title: isECE
+        ? 'ECE Student Laboratory Workspace'
+        : isEPCE
+        ? 'EPCE Student Laboratory Workspace'
+        : 'Student Laboratory Workspace',
+      subtitle: `Welcome, ${studentName} (${studentId}) · ${departmentBadge}`
     },
     courses: {
-      title: 'My Enrolled Laboratory Courses',
-      subtitle: 'Accredited undergraduate engineering laboratory modules, assigned instructors, and syllabus credit weights'
+      title: isECE
+        ? 'ECE Enrolled Laboratory Modules'
+        : isEPCE
+        ? 'EPCE Enrolled Laboratory Modules'
+        : 'My Enrolled Laboratory Courses',
+      subtitle: `Accredited ${isECE ? 'ECE' : isEPCE ? 'EPCE' : 'engineering'} undergraduate laboratory modules and syllabus credit weights`
     },
     deadlines: {
-      title: 'Laboratory Schedule & Deadlines',
-      subtitle: 'Chronological timeline of upcoming laboratory reports, experiment due dates, and submission status'
+      title: isECE
+        ? 'ECE Laboratory Schedule & Deadlines'
+        : isEPCE
+        ? 'EPCE Laboratory Schedule & Deadlines'
+        : 'Laboratory Schedule & Deadlines',
+      subtitle: `Chronological timeline of ${isECE ? 'ECE' : isEPCE ? 'EPCE' : 'laboratory'} experiment reports and milestone due dates`
     },
     submissions: {
       title: 'Submitted Laboratory Reports & Grades',
       subtitle: 'Comprehensive grade records, instructor evaluation rubrics, detailed feedback, and submitted documents'
     },
     resources: {
-      title: 'Laboratory Manuals & Reference Library',
-      subtitle: 'Institutional lab handbooks, report templates, simulation tool manuals, and equipment datasheets'
+      title: isECE
+        ? 'ECE Laboratory Reference Library & Guides'
+        : isEPCE
+        ? 'EPCE Laboratory Reference Library & Guides'
+        : 'Laboratory Manuals & Reference Library',
+      subtitle: `Institutional lab handbooks, report templates, simulation tool manuals, and equipment datasheets for ${departmentBadge}`
     }
   };
 
@@ -244,6 +340,35 @@ const StudentDashboard = () => {
           ========================================================================= */}
       {activeView === 'overview' && (
         <>
+          {/* Department Identification Banner */}
+          <div className="mb-6 p-4 rounded-xl bg-slate-900/80 border border-slate-800 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 shadow-lg">
+            <div className="flex items-center space-x-3">
+              <div className={`w-9 h-9 rounded-lg flex items-center justify-center font-bold text-sm ${
+                isECE
+                  ? 'bg-cyan-500/15 text-cyan-400 border border-cyan-500/30'
+                  : isEPCE
+                  ? 'bg-amber-500/15 text-amber-400 border border-amber-500/30'
+                  : 'bg-blue-500/15 text-blue-400 border border-blue-500/30'
+              }`}>
+                {isECE ? 'ECE' : isEPCE ? 'EPCE' : 'ASTU'}
+              </div>
+              <div>
+                <h4 className="text-sm font-bold text-white flex items-center space-x-2">
+                  <span>{isECE ? 'ECE Department Laboratory Node' : isEPCE ? 'EPCE Department Laboratory Node' : 'Departmental Laboratory Node'}</span>
+                  <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-slate-800 text-slate-300 border border-slate-700">
+                    Active Student
+                  </span>
+                </h4>
+                <p className="text-xs text-slate-400 mt-0.5">
+                  Showing laboratory modules, schedules, and deliverables strictly for {departmentBadge}.
+                </p>
+              </div>
+            </div>
+            <span className="text-xs font-mono text-slate-400">
+              ID: <span className="text-white font-semibold">{studentId}</span>
+            </span>
+          </div>
+
           {/* Overview Metric Cards */}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
             <Link
@@ -254,7 +379,7 @@ const StudentDashboard = () => {
                 Enrolled Courses
               </span>
               <div className="mt-2 flex items-baseline justify-between">
-                <span className="text-2xl font-extrabold text-white">{courses.length}</span>
+                <span className="text-2xl font-extrabold text-white">{displayCourses.length}</span>
                 <BookOpen className="w-5 h-5 text-cyan-400" />
               </div>
               <p className="mt-2 text-xs text-slate-400 flex items-center">
@@ -271,7 +396,7 @@ const StudentDashboard = () => {
                 Active Lab Exercises
               </span>
               <div className="mt-2 flex items-baseline justify-between">
-                <span className="text-2xl font-extrabold text-white">{exercises.length}</span>
+                <span className="text-2xl font-extrabold text-white">{displayExercises.length}</span>
                 <FlaskConical className="w-5 h-5 text-blue-400" />
               </div>
               <p className="mt-2 text-xs text-slate-400 flex items-center">
@@ -323,7 +448,7 @@ const StudentDashboard = () => {
               <div className="flex items-center justify-between">
                 <h2 className="text-base font-bold text-white flex items-center space-x-2">
                   <FlaskConical className="w-4 h-4 text-cyan-400" />
-                  <span>Available Laboratory Exercises ({exercises.length})</span>
+                  <span>Available Laboratory Exercises ({displayExercises.length})</span>
                 </h2>
                 <Link
                   to="/student/deadlines"
@@ -333,14 +458,14 @@ const StudentDashboard = () => {
                 </Link>
               </div>
 
-              {exercises.length === 0 ? (
+              {displayExercises.length === 0 ? (
                 <div className="py-12 text-center text-xs text-slate-500 rounded-xl bg-slate-800/30 border border-slate-800">
                   <FlaskConical className="w-8 h-8 text-slate-600 mx-auto mb-2" />
-                  <span>No published laboratory exercises at this moment.</span>
+                  <span>No published laboratory exercises for {departmentBadge} at this moment.</span>
                 </div>
               ) : (
                 <div className="space-y-4">
-                  {exercises.map((ex) => {
+                  {displayExercises.map((ex) => {
                     const userSubmission = submissions.find(
                       (s) => (s?.exercise?._id || s?.exercise)?.toString() === (ex?._id || ex?.id)?.toString()
                     );
@@ -481,10 +606,10 @@ const StudentDashboard = () => {
             <div>
               <h3 className="text-base font-bold text-white flex items-center space-x-2">
                 <BookOpen className="w-5 h-5 text-cyan-400" />
-                <span>My Registered Engineering Laboratory Modules ({courses.length})</span>
+                <span>My Registered Engineering Laboratory Modules ({displayCourses.length})</span>
               </h3>
               <p className="text-xs text-slate-400 mt-1">
-                You are enrolled in accredited laboratory sessions in the ASTU School of Electrical Engineering & Computing.
+                You are enrolled in accredited laboratory sessions in the ASTU School of Electrical Engineering & Computing ({departmentBadge}).
               </p>
             </div>
             <span className="px-3 py-1 rounded-full text-xs font-semibold bg-cyan-500/10 text-cyan-400 border border-cyan-500/20">
@@ -493,9 +618,9 @@ const StudentDashboard = () => {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {courses.map((enrollment) => {
+            {displayCourses.map((enrollment) => {
               const c = enrollment.course || enrollment;
-              const courseExercises = exercises.filter(
+              const courseExercises = displayExercises.filter(
                 (ex) => (ex?.course?._id || ex?.course)?.toString() === (c?._id || c?.id)?.toString()
               );
               return (
@@ -585,12 +710,12 @@ const StudentDashboard = () => {
               </p>
             </div>
             <span className="px-3 py-1 rounded-full text-xs font-semibold bg-amber-500/10 text-amber-400 border border-amber-500/20">
-              {exercises.length} Required Lab Deliverables
+              {displayExercises.length} Required Lab Deliverables
             </span>
           </div>
 
           <div className="space-y-4">
-            {exercises.map((ex) => {
+            {displayExercises.map((ex) => {
               const userSubmission = submissions.find(
                 (s) => (s?.exercise?._id || s?.exercise)?.toString() === (ex?._id || ex?.id)?.toString()
               );
@@ -768,16 +893,31 @@ const StudentDashboard = () => {
                     </div>
                   )}
 
-                  <div className="pt-2 flex items-center justify-between text-xs text-slate-500">
-                    <span className="font-mono text-[11px] text-slate-400">
-                      File: {sub.reportFile?.fileName || 'Laboratory_Report.pdf'}
-                    </span>
+                  <div className="pt-2 flex flex-wrap items-center justify-between gap-2 text-xs text-slate-500 border-t border-slate-800/80">
+                    <div className="flex items-center space-x-2">
+                      <span className="font-mono text-[11px] text-slate-300 flex items-center space-x-1">
+                        <Paperclip className="w-3.5 h-3.5 text-cyan-400" />
+                        <span>{sub.reportFile?.fileName || sub.fileName || 'Laboratory_Report.pdf'}</span>
+                      </span>
+                      {(sub.reportFile?.fileUrl || sub.fileUrl) && (
+                        <a
+                          href={sub.reportFile?.fileUrl || sub.fileUrl}
+                          download={sub.reportFile?.fileName || sub.fileName || 'Lab_Report.pdf'}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="px-2.5 py-1 rounded-md text-[11px] font-semibold bg-cyan-500/10 hover:bg-cyan-500/20 text-cyan-400 border border-cyan-500/30 flex items-center space-x-1 transition-colors"
+                        >
+                          <Download className="w-3 h-3" />
+                          <span>Download / View</span>
+                        </a>
+                      )}
+                    </div>
                     {sub.repositoryUrl && (
                       <a
                         href={sub.repositoryUrl}
                         target="_blank"
                         rel="noreferrer"
-                        className="text-cyan-400 hover:underline flex items-center space-x-1"
+                        className="text-cyan-400 hover:underline flex items-center space-x-1 text-[11px]"
                       >
                         <span>Simulation Code Repository</span>
                         <ExternalLink className="w-3 h-3" />
@@ -825,9 +965,7 @@ const StudentDashboard = () => {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
-            {resourcesList
-              .filter((r) => resourceFilter === 'ALL' || r.category === resourceFilter)
-              .map((res) => (
+            {displayResources.map((res) => (
                 <div
                   key={res.id}
                   className="p-5 rounded-xl bg-slate-800/60 border border-slate-700/60 hover:border-slate-600 transition-all flex flex-col justify-between"
@@ -892,22 +1030,137 @@ const StudentDashboard = () => {
               </div>
             )}
 
-            <form onSubmit={handleReportSubmit} className="space-y-4">
-              <div>
-                <label className="block text-xs font-semibold text-slate-300 mb-1">
-                  Report File Document URL or Cloud Link *
-                </label>
-                <input
-                  type="url"
-                  required
-                  placeholder="https://drive.google.com/file/... or https://astu.edu.et/reports/..."
-                  value={submissionForm.reportFileUrl}
-                  onChange={(e) =>
-                    setSubmissionForm({ ...submissionForm, reportFileUrl: e.target.value })
-                  }
-                  className="w-full px-3 py-2 rounded-lg bg-slate-800 border border-slate-700 text-white text-xs focus:outline-none focus:border-cyan-500"
-                />
+            {fileUploadError && (
+              <div className="p-3 rounded-lg bg-rose-500/10 border border-rose-500/20 text-xs font-semibold text-rose-400 flex items-center space-x-2">
+                <AlertCircle className="w-4 h-4 shrink-0" />
+                <span>{fileUploadError}</span>
               </div>
+            )}
+
+            <form onSubmit={handleReportSubmit} className="space-y-4">
+              {/* Hidden File Input */}
+              <input
+                type="file"
+                ref={fileInputRef}
+                onChange={handleFileChange}
+                accept=".pdf,.docx,.doc,.zip,.m,.py,.txt"
+                className="hidden"
+              />
+
+              {/* File Upload Zone */}
+              {!useManualUrl ? (
+                <div>
+                  <label className="block text-xs font-semibold text-slate-300 mb-1.5 flex items-center justify-between">
+                    <span>Upload Laboratory Report Document *</span>
+                    <button
+                      type="button"
+                      onClick={() => setUseManualUrl(true)}
+                      className="text-[11px] text-cyan-400 hover:text-cyan-300 font-medium"
+                    >
+                      Paste cloud link instead
+                    </button>
+                  </label>
+
+                  {selectedFile ? (
+                    <div className="p-4 rounded-xl bg-slate-800/80 border border-cyan-500/40 flex items-center justify-between">
+                      <div className="flex items-center space-x-3">
+                        <div className="w-10 h-10 rounded-lg bg-cyan-500/15 border border-cyan-500/30 flex items-center justify-center text-cyan-400">
+                          <FileText className="w-5 h-5" />
+                        </div>
+                        <div>
+                          <p className="text-xs font-bold text-white truncate max-w-[240px]">
+                            {selectedFile.name}
+                          </p>
+                          <div className="flex items-center space-x-2 text-[11px] text-slate-400 mt-0.5">
+                            <span>{(selectedFile.size / (1024 * 1024)).toFixed(2)} MB</span>
+                            <span>•</span>
+                            <span className="text-emerald-400 flex items-center space-x-1">
+                              <CheckCircle2 className="w-3 h-3" />
+                              <span>Ready to upload</span>
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+
+                      <div className="flex items-center space-x-2">
+                        <button
+                          type="button"
+                          onClick={() => fileInputRef.current?.click()}
+                          className="px-2.5 py-1 rounded-lg text-xs font-medium text-slate-300 hover:text-white bg-slate-700/60 hover:bg-slate-700 transition-colors"
+                        >
+                          Change
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setSelectedFile(null);
+                            setSubmissionForm((prev) => ({
+                              ...prev,
+                              reportFileUrl: '',
+                              fileName: `${selectedExercise?.exerciseNumber || 'Lab'}_Report.pdf`,
+                              fileSize: 0
+                            }));
+                          }}
+                          className="p-1 rounded-lg text-slate-400 hover:text-rose-400 transition-colors"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      </div>
+                    </div>
+                  ) : (
+                    <div
+                      onClick={() => fileInputRef.current?.click()}
+                      onDragOver={(e) => e.preventDefault()}
+                      onDrop={(e) => {
+                        e.preventDefault();
+                        if (e.dataTransfer.files?.[0]) {
+                          handleFileChange({ target: { files: e.dataTransfer.files } });
+                        }
+                      }}
+                      className="p-6 border-2 border-dashed border-slate-700 hover:border-cyan-500/60 rounded-xl bg-slate-800/40 hover:bg-slate-800/70 cursor-pointer text-center space-y-2 transition-all group"
+                    >
+                      <FileUp className="w-8 h-8 text-cyan-400 mx-auto group-hover:scale-110 transition-transform" />
+                      <div>
+                        <p className="text-xs font-semibold text-white">
+                          Click to select laboratory report or drag and drop
+                        </p>
+                        <p className="text-[11px] text-slate-400 mt-1">
+                          Supported: PDF (.pdf), Word (.docx), Archive (.zip), or Code (.py/.m) up to 50MB
+                        </p>
+                      </div>
+                      <button
+                        type="button"
+                        className="px-3.5 py-1.5 rounded-lg text-xs font-semibold bg-cyan-600/20 text-cyan-400 border border-cyan-500/30 group-hover:bg-cyan-600 group-hover:text-white transition-all"
+                      >
+                        Browse Local Files
+                      </button>
+                    </div>
+                  )}
+                </div>
+              ) : (
+                <div>
+                  <label className="block text-xs font-semibold text-slate-300 mb-1 flex items-center justify-between">
+                    <span>Report File Document URL or Cloud Link *</span>
+                    <button
+                      type="button"
+                      onClick={() => setUseManualUrl(false)}
+                      className="text-[11px] text-cyan-400 hover:text-cyan-300 font-medium"
+                    >
+                      ← Upload local file instead
+                    </button>
+                  </label>
+                  <input
+                    type="url"
+                    required
+                    placeholder="https://drive.google.com/file/... or https://astu.edu.et/reports/..."
+                    value={submissionForm.reportFileUrl}
+                    onChange={(e) =>
+                      setSubmissionForm({ ...submissionForm, reportFileUrl: e.target.value })
+                    }
+                    className="w-full px-3 py-2 rounded-lg bg-slate-800 border border-slate-700 text-white text-xs focus:outline-none focus:border-cyan-500"
+                  />
+                </div>
+              )}
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>

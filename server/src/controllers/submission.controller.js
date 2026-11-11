@@ -23,7 +23,14 @@ const submitReport = async (req, res, next) => {
       notes = ''
     } = req.body;
 
-    if (!exerciseId || !reportFile || !reportFile.fileUrl) {
+    const resolvedFile = reportFile || {
+      fileUrl: req.body.fileUrl,
+      fileName: req.body.fileName || 'Lab_Report.pdf',
+      fileSize: req.body.fileSize || 0,
+      fileType: req.body.fileType || 'application/pdf'
+    };
+
+    if (!exerciseId || !resolvedFile || !resolvedFile.fileUrl) {
       throw new ApiError(400, 'Exercise ID and a valid laboratory report file are required.');
     }
 
@@ -60,7 +67,10 @@ const submitReport = async (req, res, next) => {
     if (existingSubmission) {
       // Update existing submission with new version
       existingSubmission.version += 1;
-      existingSubmission.reportFile = reportFile;
+      existingSubmission.reportFile = resolvedFile;
+      existingSubmission.fileUrl = resolvedFile.fileUrl;
+      existingSubmission.fileName = resolvedFile.fileName;
+      existingSubmission.fileSize = resolvedFile.fileSize || 0;
       existingSubmission.attachments = attachments;
       existingSubmission.repositoryUrl = repositoryUrl.trim();
       existingSubmission.notes = notes.trim();
@@ -77,7 +87,10 @@ const submitReport = async (req, res, next) => {
         group: group || null,
         submittedBy: req.user._id,
         groupMembers: submissionType === 'GROUP' ? req.body.groupMembers || [req.user._id] : [],
-        reportFile,
+        reportFile: resolvedFile,
+        fileUrl: resolvedFile.fileUrl,
+        fileName: resolvedFile.fileName,
+        fileSize: resolvedFile.fileSize || 0,
         attachments,
         repositoryUrl: repositoryUrl.trim(),
         notes: notes.trim(),
@@ -144,6 +157,15 @@ const getSubmissions = async (req, res, next) => {
     // Students only see their own submissions
     if (req.user.role === 'STUDENT') {
       query.$or = [{ submittedBy: req.user._id }, { groupMembers: req.user._id }];
+    } else if (req.user.role === 'INSTRUCTOR') {
+      // Instructors only see submissions for courses in their department or courses they instruct
+      const userDeptId = req.user.department?._id || req.user.department;
+      const Course = require('../models/course.model');
+      const instructorCourses = await Course.find({
+        $or: [{ instructors: req.user._id }, { coordinator: req.user._id }, { department: userDeptId }]
+      }).select('_id');
+      query.course = { $in: instructorCourses.map((c) => c._id) };
+      if (studentId) query.submittedBy = studentId;
     } else if (studentId) {
       query.submittedBy = studentId;
     }

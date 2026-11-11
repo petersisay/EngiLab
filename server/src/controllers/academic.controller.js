@@ -151,20 +151,26 @@ const getCourses = async (req, res, next) => {
     const { department, semester, search, isActive } = req.query;
     const query = {};
 
+    const userDeptId = req.user?.department?._id || req.user?.department;
+
     if (req.user && req.user.role === 'DEPARTMENT_ADMIN') {
-      const userDeptId = req.user.department?._id || req.user.department;
-      query.department = userDeptId;
+      if (userDeptId) query.department = userDeptId;
+    } else if (req.user && req.user.role === 'STUDENT') {
+      // Students can only access courses belonging to their department
+      if (userDeptId) query.department = userDeptId;
+    } else if (req.user && req.user.role === 'INSTRUCTOR') {
+      // Instructors can only access courses in their department or courses they instruct
+      if (req.query.mine === 'true') {
+        query.instructors = req.user._id;
+      } else if (userDeptId) {
+        query.$or = [{ department: userDeptId }, { instructors: req.user._id }];
+      }
     } else if (department) {
       query.department = department;
     }
 
     if (semester) query.semester = semester;
     if (isActive !== undefined) query.isActive = isActive === 'true';
-
-    // If instructor requesting, optionally filter to their courses
-    if (req.user && req.user.role === 'INSTRUCTOR' && req.query.mine === 'true') {
-      query.instructors = req.user._id;
-    }
 
     if (search) {
       const regex = new RegExp(search.trim(), 'i');
@@ -438,7 +444,9 @@ const enrollStudent = async (req, res, next) => {
 
 const getMyEnrolledCourses = async (req, res, next) => {
   try {
-    const enrollments = await CourseEnrollment.find({
+    const userDeptId = req.user.department?._id || req.user.department;
+
+    let enrollments = await CourseEnrollment.find({
       student: req.user._id,
       status: 'ENROLLED'
     })
@@ -452,6 +460,31 @@ const getMyEnrolledCourses = async (req, res, next) => {
       })
       .sort({ enrolledAt: -1 })
       .lean();
+
+    // Ensure student only receives courses within their designated department
+    if (enrollments && enrollments.length > 0 && userDeptId) {
+      enrollments = enrollments.filter((item) => {
+        const cDept = item.course?.department?._id || item.course?.department;
+        return !cDept || cDept.toString() === userDeptId.toString();
+      });
+    }
+
+    // If student has not been manually enrolled in courses yet, provide their department's active courses
+    if ((!enrollments || enrollments.length === 0) && userDeptId) {
+      const deptCourses = await Course.find({ department: userDeptId, isActive: true })
+        .populate('department', 'name code slug')
+        .populate('semester', 'name term')
+        .populate('instructors', 'firstName lastName email')
+        .lean();
+
+      enrollments = deptCourses.map((c) => ({
+        _id: c._id,
+        course: c,
+        student: req.user._id,
+        status: 'ENROLLED',
+        enrolledAt: new Date()
+      }));
+    }
 
     // Enrich with exercise counts
     const enriched = await Promise.all(
