@@ -179,7 +179,6 @@ npm run dev
 
 | Role | Email | Password | Scope |
 | :--- | :--- | :--- | :--- |
-| **Super Admin** | `admin@engilab.astu.edu.et` | `Admin@EngiLab2025!` | Cross-Institutional |
 | **ECE Instructor** | `dawit.kebede@astu.edu.et` | `Instructor@2025!` | ECE Department |
 | **EPCE Instructor** | `alemayehu.tadesse@astu.edu.et` | `Instructor@2025!` | EPCE Department |
 
