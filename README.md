@@ -133,6 +133,7 @@ EngiLab/
 │   │       ├── apiResponse.js             # Standardized JSON response formatter
 │   │       └── token.js                   # JWT generation & cookie helper
 │   ├── test/
+│   │   ├── security.test.js               # Role-based access & token authorization audit
 │   │   └── workflow.test.js               # End-to-end academic pipeline verification
 │   └── package.json
 └── README.md
@@ -147,7 +148,13 @@ EngiLab/
 - npm (v9.0.0 or higher)
 - MongoDB instance (Local or MongoDB Atlas cluster)
 
-### 1. Backend Setup
+### 1. Clone & Repository Setup
+```bash
+git clone https://github.com/petersisay/EngiLab.git
+cd EngiLab
+```
+
+### 2. Backend Setup
 ```bash
 cd server
 npm install
@@ -155,14 +162,14 @@ cp .env.example .env
 
 # Edit .env with your MongoDB Atlas URI and JWT secrets
 # Then initialize the database with ASTU departments and super admin:
-node src/config/seed.js
+npm run seed
 
 # Start the development server:
 npm run dev
 # Server will listen on http://localhost:5000
 ```
 
-### 2. Frontend Setup
+### 3. Frontend Setup
 ```bash
 cd ../client
 npm install
@@ -188,10 +195,15 @@ npm run dev
 
 ## Automated Verification
 
-To run the automated academic workflow test suite verifying environment validation, response formatting, JWT token decryption, model schemas, and late submission calculations:
+To run the automated test suite verifying academic workflows, environment configuration, and role-based security rules:
 
 ```bash
 cd server
+
+# Run the complete test suite (workflow and security audits)
+npm test
+
+# Or run standalone workflow verification:
 node test/workflow.test.js
 ```
 
